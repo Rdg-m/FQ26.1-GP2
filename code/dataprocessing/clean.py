@@ -1,0 +1,3 @@
+# Funções para limpar e preprocessar os dados
+# devem ser usadas principalmente no load.py para tratar os dados lidos antes de serem usados nas etapas seguintes do backtest. Essas funções devem ser flexíveis o suficiente para lidar com diferentes tipos de dados e formatos, e devem ser fáceis de usar para o usuário final.
+# Elas devem ser capazes de lidar com valores ausentes, converter os tipos de dados, normalizar os dados, etc.
