@@ -24,3 +24,6 @@ NOTAS:
 - Toda a lógica de negócio deve estar em outros módulos
 - A interface é responsável por rotear para funcionalidades específicas
 """
+from src.interface.interface import main
+
+main()
