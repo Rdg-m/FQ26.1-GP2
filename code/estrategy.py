@@ -1,5 +1,0 @@
-#Arquivo responsável por implementar a estratégia de negociação a ser testada no backtest. Ele deve conter as regras de entrada e saída de posições, os indicadores técnicos utilizados, os parâmetros da estratégia, etc. Ele deve ser flexível o suficiente para permitir a implementação de diferentes estratégias e deve ser fácil de usar para o usuário final. Ele deve conter as seguintes etapas:
-#1. Importar as bibliotecas necessárias para a implementação da estratégia, como por exemplo,pandas, numpy, etc.
-#2. Definir as variáveis necessárias para a estratégia, como por exemplo, os parâmetros dos indicadores técnicos, os critérios de entrada e saída de posições, etc.
-#3. Implementar as regras de entrada e saída de posições de acordo com a estratégia definida, utilizando os indicadores técnicos e os critérios definidos.
-#4. Retornar as ordens de compra e venda geradas pela estratégia para serem executadas no backtest.
