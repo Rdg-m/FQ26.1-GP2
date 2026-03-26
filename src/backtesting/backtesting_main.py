@@ -233,7 +233,7 @@ CONFIGURAÇÕES CUSTOMIZÁVEIS:
 - Número máximo de posições abertas
 
 EXEMPLO DE USO:
-    from code.backtesting.backtesting_main import run_backtest
+    from src.backtesting.backtesting_main import run_backtest
     
     results = run_backtest(
         symbols=['PETR4', 'VALE5'],

@@ -9,12 +9,12 @@ RESPONSABILIDADES:
 
 FLUXO DE EXECUÇÃO:
 1. Executa quando o programa é iniciado
-2. Importa o módulo de interface (code.interface.interface)
+2. Importa o módulo de interface (src.interface.interface)
 3. Chama a função principal de interface para exibir menu
 4. Aguarda e processa as escolhas do usuário
 
 DEPENDÊNCIAS:
-- code.interface.interface (módulo de interface com usuário)
+- src.interface.interface (módulo de interface com usuário)
 
 SAÍDA:
 - Controle transferido para a interface que roteia para outros módulos

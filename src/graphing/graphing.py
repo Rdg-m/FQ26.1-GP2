@@ -180,7 +180,7 @@ Idioma:
 - 'en': Inglês
 
 EXEMPLO DE USO:
-    from code.graphing.graphing import (
+    from src.graphing.graphing import (
         plot_equity_curve,
         plot_trades,
         generate_report

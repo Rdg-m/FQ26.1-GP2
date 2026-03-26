@@ -145,7 +145,7 @@ DEPENDÊNCIAS:
 - scipy: Estatísticas avançadas (se necessário)
 
 EXEMPLO DE USO:
-    from code.dataprocessing.clean import clean_data
+    from src.dataprocessing.clean import clean_data
     
     # Limpar dataframe sujo
     df_clean = clean_data(

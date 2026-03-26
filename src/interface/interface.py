@@ -38,10 +38,10 @@ FLUXO DE INTERFACE:
 7. Retorna ao menu (ou sai se solicitado)
 
 DEPENDÊNCIAS EXTERNAS:
-- code.backtesting.backtesting_main (orquestração principal)
-- code.dataprocessing.load (carregamento de dados)
-- code.dataprocessing.clean (limpeza de dados)
-- code.graphing.graphing (visualização de resultados)
+- src.backtesting.backtesting_main (orquestração principal)
+- src.dataprocessing.load (carregamento de dados)
+- src.dataprocessing.clean (limpeza de dados)
+- src.graphing.graphing (visualização de resultados)
 
 CARACTERÍSTICAS:
 - Flexível e extensível para novos tipos de operações
