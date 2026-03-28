@@ -1,6 +1,6 @@
 data/B3/*
 data/S&P100/*
-
+data/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
