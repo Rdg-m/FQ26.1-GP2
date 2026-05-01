@@ -20,3 +20,10 @@ Edit: Rodrigo
 Load.py feito
 
 Edit: Pedro
+---
+Reunião dia 01/05;
+
+Arquivo modelos pre implementados add
+Arquivo para lógica b3 add
+
+Edit: Rodrigo
