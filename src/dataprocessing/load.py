@@ -111,17 +111,22 @@ import requests
 import yfinance as yf
 from io import StringIO
 from bcb import sgs
+from src.dataprocessing.b3 import read_b3
 
 def load_data(caminho=None, formato='csv', indice=None, fonte="yfinance", tempo='10y', comeco=None, fim=None, salvar=False):
-    if caminho is not None:
-        if formato == 'csv':
+      match formato:
+        
+        case 'csv':
             return pd.read_csv(caminho, index_col=0, parse_dates=True)
-        elif formato == 'json':
+        case 'json':
             return pd.read_json(caminho)
-        elif formato == 'xlsx':
+        case 'xlsx':
             return pd.read_excel(caminho, index_col=0, engine='openpyxl')
-        else:
-            raise TypeError("Formato não aceitado!")
+        case 'b3':
+              return read_b3(caminho, comeco, tempo, fim)
+        case _:
+            if formato is not None: 
+               raise NotImplementedError("Formato não aceitado!")
 
     elif indice is not None:
         if fonte == "yfinance":
