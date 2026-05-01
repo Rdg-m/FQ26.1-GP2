@@ -15,15 +15,17 @@ Reunião inical marcada para dia 28/03;
 
 Edit: Rodrigo
 
-##21/04/26
+21/04/26
 ---
 Load.py feito
 
 Edit: Pedro
+01/05/26
 ---
-Reunião dia 01/05;
+Reunião feita
 
 Arquivo modelos pre implementados add
+
 Arquivo para lógica b3 add
 
 Edit: Rodrigo
