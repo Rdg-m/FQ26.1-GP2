@@ -20,6 +20,7 @@ Edit: Rodrigo
 Load.py feito
 
 Edit: Pedro
+
 01/05/26
 ---
 Reunião feita
@@ -27,5 +28,12 @@ Reunião feita
 Arquivo modelos pre implementados add
 
 Arquivo para lógica b3 add
+
+Edit: Rodrigo
+
+05/05/26
+---
+
+Função de plotting genérica adicionada e algumas funções de calculo também - graphing.py
 
 Edit: Rodrigo
