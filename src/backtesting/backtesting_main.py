@@ -255,3 +255,34 @@ NOTAS:
 - Comissões e slippage são estimados
 - Não simula impacto de grandes ordens
 """
+import numpy as np
+
+_params = {
+    'm' : 1 #esperança
+    'o' : 50 # desvio padrão
+
+}
+
+def solve_type(*a):
+    '''descobre o tipo de a e gera a função apropriada para desenrolar a em um vetor aplicando f como é previsto'''
+    if isinstance(a, (tuple, list)):
+        # aqui não posso saber oq cada coisa é, então uso novos valores a cada elemento de a
+        return lambda f, a: [f()*k for k in a]
+    if isinstance(a, np.ndarray):
+        shape = a.shape
+        #usar um valor diferente de f() pra cada vetor de ohlcm
+        pass
+    if isinstance(a, pd.DataFrame):
+        pass 
+
+from src.dataprocessing.mov_brow import MBG
+
+def Atualizar_com_browniano(*a):
+    '''ideia geral de como seria a implementação na classe, só jogar pra dentro e trocar as referencias pra self.
+    a função recebe um vetor provavelmente de ações onde cada ação tem um vetor com ohlcm
+    aplicando o mesmo step do movimento para cada vetor ohlcm e diferente pra cada ação, temos um mercado aleatório    '''
+    f = solve_type(a)
+    MOV, Step = MBG(_params.get('m'), _params.get('o'))
+
+    return f(Step, *a)
+
