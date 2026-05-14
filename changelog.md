@@ -44,3 +44,10 @@ Edit: Rodrigo
 Função de movimento browniano e movimento browniano geométrico implementadas
 
 Edit: Rodrigo
+
+14/05/26
+---
+
+Motor principal de backtest implementado (backtesting_main.py): loop de execução de sinais, sistema de roteamento (BUY/SELL), cálculo de preço médio nas compras, lógica de lucro na venda e radar diário de risco (Stop Loss/Take Profit).
+
+Edit: Pedro
