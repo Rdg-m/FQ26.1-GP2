@@ -55,3 +55,8 @@ NOTAS:
 - Permite experimentação interativa do usuário
 """
 
+
+def main():
+    """Ponto de entrada da interface do usuário."""
+    print("FQ26GP2 interface entry point is available.")
+

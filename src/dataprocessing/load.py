@@ -110,7 +110,6 @@ import numpy as np
 import requests 
 import yfinance as yf
 from io import StringIO
-from bcb import sgs
 
 def load_data(caminho=None, formato='csv', indice=None, fonte="yfinance", tempo='10y', comeco=None, fim=None, salvar=False):
     if caminho is not None:
@@ -131,6 +130,12 @@ def load_data(caminho=None, formato='csv', indice=None, fonte="yfinance", tempo=
                 df = yf.download(indice, period=tempo)
         
         elif fonte == 'bcb':
+            try:
+                from bcb import sgs
+            except ModuleNotFoundError as exc:
+                raise ModuleNotFoundError(
+                    "The 'bcb' dependency is required for fonte='bcb'. Install it manually if you need this source."
+                ) from exc
             codigo = int(indice)
             df = sgs.get({'Close': codigo}, start=comeco)
             df.index.name = 'Date'

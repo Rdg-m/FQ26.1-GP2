@@ -258,9 +258,8 @@ NOTAS:
 import numpy as np
 
 _params = {
-    'm' : 1 #esperança
+    'm' : 1, # esperança
     'o' : 50 # desvio padrão
-
 }
 
 def solve_type(*a):

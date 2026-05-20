@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Back_da_dev"
+version = "0.0.1"
+description = "Backtesting and data-processing library for financial strategy analysis."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [ { name = "FQ26.1 Contributors" } ]
+dependencies = [
+  "matplotlib",
+  "numpy",
+  "pandas",
+  "requests",
+  "yfinance"
+]
+keywords = ["backtest", "finance", "trading", "strategy", "data-processing"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Financial and Insurance Industry",
+  "Topic :: Office/Business :: Financial",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/your-org/fq26gp2"
+"Source" = "https://github.com/your-org/fq26gp2"
+"Tracker" = "https://github.com/your-org/fq26gp2/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-q"
+testpaths = ["tests"]

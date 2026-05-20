@@ -1,4 +1,3 @@
-"""
 Ponto de Entrada Principal do Sistema de Backtesting de Estratégias de Negociação
 
 RESPONSABILIDADES:
@@ -23,7 +22,3 @@ NOTAS:
 - Este arquivo deve ser mantido limpo e simples
 - Toda a lógica de negócio deve estar em outros módulos
 - A interface é responsável por rotear para funcionalidades específicas
-"""
-from src.interface.interface import main
-
-main()
