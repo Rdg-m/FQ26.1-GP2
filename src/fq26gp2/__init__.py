@@ -5,4 +5,4 @@ from src.dataprocessing.load import load_data
 from src.dataprocessing.clean import clean_data
 
 __all__ = ["main", "BacktestEngine", "load_data", "clean_data"]
-__version__ = "0.1.0"
+__version__ = "0.0.1"
