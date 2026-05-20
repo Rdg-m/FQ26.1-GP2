@@ -106,10 +106,8 @@ NOTAS:
 
 import os
 import pandas as pd
-import numpy as np
-import requests 
 import yfinance as yf
-from io import StringIO
+
 
 def load_data(caminho=None, formato='csv', indice=None, fonte="yfinance", tempo='10y', comeco=None, fim=None, salvar=False):
     if caminho is not None:
