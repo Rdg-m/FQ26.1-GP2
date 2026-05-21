@@ -292,6 +292,11 @@ def Atualizar_com_browniano(*a):
     return f(Step, *a)
 
 
+_config = {
+    "over_spend": False
+
+}
+
 class BacktestEngine:
     def __init__(self,data:pd.DataFrame,symbols:list,initial_capital:float=10000.0,commission:float=0.001):
         self.data=data
@@ -302,7 +307,7 @@ class BacktestEngine:
         self.initial_capital=initial_capital
         self.cash=initial_capital
         self.portfolio_value=initial_capital
-        
+        self._configs = _config
         self.open_positions={}
         self.closed_positions=[] ##lista de dicionarios
         self.daily_history=[]    ##saldo de cada dia para fazermos os graficos
@@ -326,12 +331,14 @@ class BacktestEngine:
                 # reason=sinal.get("reason")
                 # confidence=sinal.get("confidence")
                 # indicators=sinal.get("indicators")
-                if tipo=="BUY":
-                    if self.cash>=preco*qtd:
-                        self._execute_buy(sinal,date)
+                if tipo=="BUY": self._execute_buy(sinal,date)
+                    
                 elif tipo=="SELL":
                     if simbolo in self.open_positions:
                         self._execute_sell(sinal,date)
+                    else: raise AttributeError('simbolo não está nas posições abertas', simbolo)
+                else: raise ValueError('Tipo de sinal mal formado', tipo)
+                
             vendas_forcadas=[]
             for simbolo,posicao in self.open_positions.items():
                 dados_acao=ohlcv[ohlcv["symbol"]==simbolo]
@@ -381,10 +388,23 @@ class BacktestEngine:
             })
         print('back_finalizado')
 
+    def overspending(self, sinal)-> tuple[float, int|float]:
+        n=sinal['quantity']
+        price_corr =sinal["price"] * (1+self.commission)
+        while self.cash<price_corr*n:
+            n -=1
+        return price_corr*n, n
+            
 
     def _execute_buy(self,sinal,date):
-        custo=sinal["price"]*sinal["quantity"]
-        custo=custo * (1+self.commission)
+        custo=sinal["price"]*sinal["quantity"]* (1+self.commission)
+        
+        if self.cash < custo: 
+            if self._configs['over_spend'] == False:
+                print('sinal impossível (compra)'); return None                     #trazendo a chekagem pra dentro
+            else:
+                custo, sinal["quantity"] = self.overspending(sinal)                 # isso talvez a gente tira depois, pq isso significa que temos que informar o modelo de quanto dinheiro ele tem.
+        
         self.cash=self.cash-custo
         if sinal["symbol"] in self.open_positions:
             qtd_antiga=self.open_positions[sinal["symbol"]]["quantity"]             #talvez precise usar get com exception como 0, para sempre funcionar -rod
