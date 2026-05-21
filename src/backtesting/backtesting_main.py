@@ -262,10 +262,7 @@ from typing import Callable
 from src.dataprocessing.load import load_data
 from src.dataprocessing.clean import clean_data
 
-_params = {
-    'm' : 1, # esperança
-    'o' : 50 # desvio padrão
-}
+
 
 def solve_type(*a)-> Callable:
     '''descobre o tipo de a e gera a função apropriada para desenrolar a em um vetor aplicando f como é previsto'''
@@ -291,9 +288,44 @@ def Atualizar_com_browniano(*a):
     MOV, Step = MBG(_params.get('m', 0), _params.get('o', 1))
     return f(Step, *a)
 
+def set_var_regime(s:str, d:dict=_config['mov_brown_parans'])->dict:
+    new_d ={}
+    match s:
+        case 'Y':
+            new_d['o'] = d['o']*((240)**(.5))
+        case 'm':
+            new_d['o'] = d['o']*((20)**(.5))
+        case 'd':
+            new_d['o'] = d['o']
+        case _:
+            raise NotImplemented
+    new_d['m'] = d['m']
+    return new_d
+
+
+def set_regime(x:float=0, s:str=None, d:dict=_config['mov_brown_parans'])->dict:
+    new_d ={}
+    if s is not None:
+        match s:
+            case 'high':
+                new_d['m'] = 1
+            case 'low':
+                new_d["m"] = -1
+            case 'stable':
+                new_d['m'] = 0
+            case _:
+                raise ValueError('valor não corresponde aos usados', s)
+    else:
+        new_d["m"]=x
+    new_d['o'] = d.get('o')
+    return new_d     
 
 _config = {
-    "over_spend": False
+    "over_spend": False,
+    "mov_brown_parans": {'m' : 0, 'o' : 50}, #var diária tirada do cu
+    "dado_real": True,
+    "periodos" : 10,
+    "time_period": 'y' #ano y, dia d, mes M, minuto m
 
 }
 
@@ -314,6 +346,85 @@ class BacktestEngine:
 
 
     def run(self,strategy_instance):
+        if self._configs["dado_real"] == True: self.run_normal(strategy_instance)
+        else: self.run_brown(strategy_instance)
+        
+
+    def run_brown(self, strategy_instance):
+        print('iniciado_o_back')
+        for date in datas_unicas: #trocar tudo!
+            ohlcv=self.data.loc[self.data.index==date]
+            sinais=strategy_instance.generate_signals(ohlcv)
+            for sinal in sinais:
+                tipo=sinal["signal_type"]
+                simbolo=sinal["symbol"]
+                preco=sinal["price"]
+                qtd=sinal['quantity']
+                # tempo=sinal["timestamp"]          # não está sendo usado -rod
+                # stop_loss=sinal["stop_loss"]
+                # take_profit=sinal["take_profit"]
+                # reason=sinal.get("reason")
+                # confidence=sinal.get("confidence")
+                # indicators=sinal.get("indicators")
+                if tipo=="BUY": self._execute_buy(sinal,date)
+                    
+                elif tipo=="SELL":
+                    if simbolo in self.open_positions:
+                        self._execute_sell(sinal,date)
+                    else: raise AttributeError('simbolo não está nas posições abertas', simbolo)
+                else: raise ValueError('Tipo de sinal mal formado', tipo)
+                
+            vendas_forcadas=[]
+            for simbolo,posicao in self.open_positions.items():
+                dados_acao=ohlcv[ohlcv["symbol"]==simbolo]
+                if dados_acao.empty:
+                    continue
+                minima=dados_acao["low"].iloc[0]
+                maxima=dados_acao["high"].iloc[0]
+                stop = posicao.get('stop_loss', 0.0)
+                alvo = posicao.get('take_profit', 0.0)
+                if stop>0 and minima<= stop:
+                    sinal_venda = {
+                        "symbol": simbolo,
+                        "price": stop, 
+                        "quantity": posicao['quantity'], 
+                        "reason": "Stop Loss Atingido"
+                    }
+                    vendas_forcadas.append(sinal_venda)
+                elif alvo > 0 and maxima >= alvo:
+                    sinal_venda = {
+                        "symbol": simbolo,
+                        "price": alvo,
+                        "quantity": posicao['quantity'], 
+                        "reason": "Take Profit Atingido"
+                    }
+                    vendas_forcadas.append(sinal_venda)
+            
+            for sinal in vendas_forcadas:
+                self._execute_sell(sinal, date)
+        
+            #analise do dia
+            valor_acoes = 0
+            for simbolo, posicao in self.open_positions.items():
+                dados_da_acao = ohlcv[ohlcv['symbol'] == simbolo]
+                
+                if not dados_da_acao.empty:
+                    preco_fechamento = dados_da_acao['close'].iloc[0]
+                    posicao['value'] = posicao['quantity'] * preco_fechamento       #atualiza -rod
+                
+                valor_acoes += posicao['value']                                     #fica fora do if, pois se faltar não atualiza saquei -rod
+                
+            self.portfolio_value = self.cash + valor_acoes
+            
+            self.daily_history.append({
+                'date': date,
+                'cash': self.cash,
+                'portfolio_value': self.portfolio_value
+            })
+        print('back_finalizado')
+
+
+    def run_normal(self, strategy_instance):
         self.data=self.data.sort_index()            # Trocar por carregamento up-to-demand, sem processar tudo antes -rod
         datas_unicas=self.data.index.unique()       # achar outro método de saber iterações (imagino que um _config serve) -rod
         print('iniciado_o_back')
