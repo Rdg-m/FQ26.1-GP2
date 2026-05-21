@@ -255,21 +255,28 @@ NOTAS:
 - Comissões e slippage são estimados
 - Não simula impacto de grandes ordens
 """
+import pandas as pd
 import numpy as np
+from datetime import datetime
+from typing import Callable
+from src.dataprocessing.load import load_data
+from src.dataprocessing.clean import clean_data
 
 _params = {
     'm' : 1, # esperança
     'o' : 50 # desvio padrão
 }
 
-def solve_type(*a):
+def solve_type(*a)-> Callable:
     '''descobre o tipo de a e gera a função apropriada para desenrolar a em um vetor aplicando f como é previsto'''
+    if isinstance(a, (int, float)):
+        return lambda f, a: f(a)
     if isinstance(a, (tuple, list)):
         # aqui não posso saber oq cada coisa é, então uso novos valores a cada elemento de a
         return lambda f, a: [f()*k for k in a]
     if isinstance(a, np.ndarray):
         shape = a.shape
-        #usar um valor diferente de f() pra cada vetor de ohlcm
+        #usar um valor diferente de f() pra cada vetor de ohlcmv
         pass
     if isinstance(a, pd.DataFrame):
         pass 
@@ -281,15 +288,10 @@ def Atualizar_com_browniano(*a):
     a função recebe um vetor provavelmente de ações onde cada ação tem um vetor com ohlcm
     aplicando o mesmo step do movimento para cada vetor ohlcm e diferente pra cada ação, temos um mercado aleatório    '''
     f = solve_type(a)
-    MOV, Step = MBG(_params.get('m'), _params.get('o'))
-
+    MOV, Step = MBG(_params.get('m', 0), _params.get('o', 1))
     return f(Step, *a)
 
-import pandas as pd
-import numpy as np
-from datetime import datetime
-from src.dataprocessing.load import load_data
-from src.dataprocessing.clean import clean_data
+
 class BacktestEngine:
     def __init__(self,data:pd.DataFrame,symbols:list,initial_capital:float=10000.0,commission:float=0.001):
         self.data=data
@@ -307,8 +309,9 @@ class BacktestEngine:
 
 
     def run(self,strategy_instance):
-        self.data=self.data.sort_index()
-        datas_unicas=self.data.index.unique()
+        self.data=self.data.sort_index()            # Trocar por carregamento up-to-demand, sem processar tudo antes -rod
+        datas_unicas=self.data.index.unique()       # achar outro método de saber iterações (imagino que um _config serve) -rod
+        print('iniciado_o_back')
         for date in datas_unicas:
             ohlcv=self.data.loc[self.data.index==date]
             sinais=strategy_instance.generate_signals(ohlcv)
@@ -317,12 +320,12 @@ class BacktestEngine:
                 simbolo=sinal["symbol"]
                 preco=sinal["price"]
                 qtd=sinal['quantity']
-                tempo=sinal["timestamp"]
-                stop_loss=sinal["stop_loss"]
-                take_profit=sinal["take_profit"]
-                reason=sinal.get("reason")
-                confidence=sinal.get("confidence")
-                indicators=sinal.get("indicators")
+                # tempo=sinal["timestamp"]          # não está sendo usado -rod
+                # stop_loss=sinal["stop_loss"]
+                # take_profit=sinal["take_profit"]
+                # reason=sinal.get("reason")
+                # confidence=sinal.get("confidence")
+                # indicators=sinal.get("indicators")
                 if tipo=="BUY":
                     if self.cash>=preco*qtd:
                         self._execute_buy(sinal,date)
@@ -354,19 +357,20 @@ class BacktestEngine:
                         "reason": "Take Profit Atingido"
                     }
                     vendas_forcadas.append(sinal_venda)
+            
             for sinal in vendas_forcadas:
                 self._execute_sell(sinal, date)
+        
             #analise do dia
             valor_acoes = 0
-
             for simbolo, posicao in self.open_positions.items():
                 dados_da_acao = ohlcv[ohlcv['symbol'] == simbolo]
                 
                 if not dados_da_acao.empty:
                     preco_fechamento = dados_da_acao['close'].iloc[0]
-                    posicao['value'] = posicao['quantity'] * preco_fechamento
+                    posicao['value'] = posicao['quantity'] * preco_fechamento       #atualiza -rod
                 
-                valor_acoes += posicao['value']
+                valor_acoes += posicao['value']                                     #fica fora do if, pois se faltar não atualiza saquei -rod
                 
             self.portfolio_value = self.cash + valor_acoes
             
@@ -375,23 +379,25 @@ class BacktestEngine:
                 'cash': self.cash,
                 'portfolio_value': self.portfolio_value
             })
+        print('back_finalizado')
 
 
     def _execute_buy(self,sinal,date):
         custo=sinal["price"]*sinal["quantity"]
-        custo=custo+custo*self.commission
+        custo=custo * (1+self.commission)
         self.cash=self.cash-custo
         if sinal["symbol"] in self.open_positions:
-            qtd_antiga=self.open_positions[sinal["symbol"]]["quantity"]
-            preco_antigo=self.open_positions[sinal["symbol"]]["entry_price"]
+            qtd_antiga=self.open_positions[sinal["symbol"]]["quantity"]             #talvez precise usar get com exception como 0, para sempre funcionar -rod
+            preco_antigo=self.open_positions[sinal["symbol"]]["entry_price"]        #mesma coisa -rod
             qtd_nova=sinal["quantity"]
             preco_novo=sinal["price"]
             qtd_total = qtd_antiga + qtd_nova
-            preco_medio = ((qtd_antiga * preco_antigo) + (qtd_nova * preco_novo)) / qtd_total
+            valor_novo = (qtd_antiga * preco_antigo) + (qtd_nova * preco_novo)      #menos rounding -rod
+            preco_medio = valor_novo / qtd_total
             self.open_positions[sinal["symbol"]]["quantity"] = qtd_total
             self.open_positions[sinal["symbol"]]["entry_price"] = preco_medio
-            self.open_positions[sinal["symbol"]]["value"] = qtd_total * preco_medio
-            self.open_positions[sinal["symbol"]]["date"]=date
+            self.open_positions[sinal["symbol"]]["value"] = valor_novo
+            self.open_positions[sinal["symbol"]]["date"]= date
             self.open_positions[sinal["symbol"]]["stop_loss"] = sinal.get("stop_loss", 0.0)
             self.open_positions[sinal["symbol"]]["take_profit"] = sinal.get("take_profit", 0.0)
         else:
@@ -417,12 +423,12 @@ class BacktestEngine:
         data_entrada = posicao["entry_date"]
         
         valor_bruto_venda = preco_venda * qtd_venda
-        custo_comissao = valor_bruto_venda * self.commission
-        valor_liquido_venda = valor_bruto_venda - custo_comissao
+
+        valor_liquido_venda = valor_bruto_venda *(1-self.commission)    #fiz a conta direta que parece mais claro -rod  
         
         self.cash = self.cash + valor_liquido_venda
 
-        custo_da_venda = qtd_venda * preco_entrada 
+        custo_da_venda = qtd_venda * preco_entrada                      
         lucro_liquido = valor_liquido_venda - custo_da_venda
         
         trade_fechado = {
