@@ -468,10 +468,95 @@ __all__ = [
     'generate_sample_time_series',
     'plot_time_series',
 ]
+@apply_plot_style(
+    title='Curva de Patrimônio (Equity Curve)',
+    xlabel='Data',
+    ylabel='Capital Total (R$)',
+    legend=True,
+    theme='dark',
+    figsize=(14.0, 7.0)
+)
+def plot_equity_curve(
+    daily_history: list,
+    ax: Optional[plt.Axes] = None,
+    colors: Optional[Sequence[str]] = None
+) -> plt.Axes:
+    df_history = pd.DataFrame(daily_history)
+    
+    if df_history.empty or 'date' not in df_history.columns or 'portfolio_value' not in df_history.columns:
+        print("Dados de histórico diário insuficientes para gerar a Equity Curve.")
+        return plt.gca()
 
+    if colors is None:
+        colors = _normalize_color_palette(None, 2)
+    
+    ax = ax if ax is not None else plt.gca()
+    
+    # Plota a linha principal do patrimônio
+    ax.plot(
+        df_history['date'], 
+        df_history['portfolio_value'], 
+        label='Valor do Portfolio', 
+        color=colors[0], 
+        linewidth=2.0
+    )
+    # Dinheiro em caixa
+    if 'cash' in df_history.columns:
+        ax.plot(
+            df_history['date'], 
+            df_history['cash'], 
+            label='Dinheiro em Caixa', 
+            color=colors[1], 
+            linestyle='--', 
+            alpha=0.6 
+        )
+        
+    return ax
 
+@apply_plot_style(
+    title='Gráfico de Drawdown (Quedas do Patrimônio)',
+    xlabel='Data',
+    ylabel='Drawdown (%)',
+    legend=True,
+    theme='dark',
+    figsize=(14.0, 5.0)
+)
+def plot_drawdown(
+    daily_history: list,
+    ax: Optional[plt.Axes] = None,
+    colors: Optional[Sequence[str]] = None
+) -> plt.Axes:
+    """
+    Desenha o gráfico de Drawdown 
+    """
+    df_history = pd.DataFrame(daily_history)
+    
+    if df_history.empty or 'date' not in df_history.columns or 'portfolio_value' not in df_history.columns:
+        print("\Dados insuficientes para gerar o Drawdown")
+        return plt.gca()
+
+    picos_acumulados = df_history['portfolio_value'].cummax()
+    drawdowns = (df_history['portfolio_value'] - picos_acumulados) / picos_acumulados * 100.0
+
+    if colors is None:
+        colors = _normalize_color_palette(None, 4)
+    
+    ax = ax if ax is not None else plt.gca()
+    
+    ax.fill_between(
+        df_history['date'],
+        drawdowns,
+        0,
+        color=colors[3], 
+        alpha=0.4,
+        label='Drawdown (%)'
+    )
+    
+    ax.plot(df_history['date'], drawdowns, color=colors[3], linewidth=1.5)
+    
+    return ax
 if __name__ == '__main__':
    # teste de sanidade
-   series = generate_sample_time_series(length=30)
-   plot_time_series(series, label='Série de Preço', colors=['#d62728'], line_style='-', marker='o')
-   plt.show()
+    series = generate_sample_time_series(length=30)
+    plot_time_series(series, label='Série de Preço', colors=['#d62728'], line_style='-', marker='o')
+    plt.show()
