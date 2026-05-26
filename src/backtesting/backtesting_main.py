@@ -265,28 +265,43 @@ from src.dataprocessing.clean import clean_data
 from src.dataprocessing.mov_brow import MBG
 _config = {
     "over_spend": False,
-    "mov_brown_parans": {'m' : 0, 'o' : 50}, #var diária tirada do cu
+    "mov_brown_parans": {'m' : 1, 'o' : 50}, #var diária tirada do cu
     "dado_real": True,
-    "periodos" : 10,
-    "time_period": 'y' #ano y, dia d, mes M, minuto m
+    "periodos" : 1000,
+    "time_period": 'd' #ano y, dia d, mes M, minuto m
 
 
 }
 
 
-def solve_type(*a)-> Callable:
-    '''descobre o tipo de a e gera a função apropriada para desenrolar a em um vetor aplicando f como é previsto'''
-    if isinstance(a, (int, float)):
-        return lambda f, a: f(a)
-    if isinstance(a, (tuple, list)):
-        # aqui não posso saber oq cada coisa é, então uso novos valores a cada elemento de a
-        return lambda f, a: [f()*k for k in a]
-    if isinstance(a, np.ndarray):
-        shape = a.shape
-        #usar um valor diferente de f() pra cada vetor de ohlcmv
-        pass
-    if isinstance(a, pd.DataFrame):
-        pass 
+def solve_type(*a) -> Callable:
+    '''
+    Descobre o tipo de a e retorna uma função que aplica f sobre o valor/estrutura.
+    O objetivo é atualizar preços ou vetores com um step gerado por f.
+    '''
+    if len(a) == 0:
+        raise ValueError('solve_type precisa de pelo menos um argumento')
+
+    value = a[0] if len(a) == 1 else a
+
+    if isinstance(value, (int, float)):
+        return lambda f, *args: f() * args[0]
+
+    if isinstance(value, (tuple, list)):
+        return lambda f, *args: [f() * item for item in args[0]]
+
+    if isinstance(value, np.ndarray):
+        return lambda f, *args: args[0] * f()
+
+    if isinstance(value, pd.DataFrame):
+        return lambda f, *args: args[0] * f()
+
+    # Fallback: tente aplicar f a cada elemento se for iterável
+    try:
+        iter(value)
+        return lambda f, *args: [f() * item for item in args[0]]
+    except TypeError:
+        return lambda f, *args: f() * args[0]
 
 from src.dataprocessing.mov_brow import MBG
 
@@ -376,7 +391,7 @@ class BacktestEngine:
             # Atualizar preços usando movimento browniano
             precos_atuais = {}
             for symbol in self.symbols:
-                fator_multiplo = Step()
+                fator_multiplo = MOV(periodo)
                 precos_base[symbol] = max(1.0, precos_base[symbol] * fator_multiplo)
                 precos_atuais[symbol] = precos_base[symbol]
             
@@ -628,3 +643,44 @@ class BacktestEngine:
         if posicao["quantity"] <= 0:
             del self.open_positions[simbolo]
 
+
+if __name__ == '__main__':
+    from src.backtesting.modelos_pre_implementados import buy_and_hold
+
+    class StrategyAdapter:
+        def __init__(self, model):
+            self.model = model
+
+        def generate_signals(self, ohlcv):
+            assets = []
+            for _, row in ohlcv.iterrows():
+                if 'symbol' in row and 'close' in row:
+                    assets.append({'symbol': row['symbol'], 'price': row['close']})
+
+            signals = self.model.com(assets)
+            if not signals:
+                return None
+
+            normalized = []
+            for sinal in signals:
+                if 'type' in sinal and 'signal_type' not in sinal:
+                    sinal['signal_type'] = sinal.pop('type')
+                normalized.append(sinal)
+
+            return normalized
+
+    symbols = ['PETR4', 'VALE5', 'ITUB4']
+    engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital=10000.0)
+    engine._configs['dado_real'] = False
+    engine._configs['periodos'] = 1000
+
+    print('Executando backtest browniano com estratégia buy_and_hold...')
+    strategy = StrategyAdapter(buy_and_hold(10000.0))
+    engine.run(strategy)
+
+    print('\nRESULTADOS DO BACKTEST')
+    print('Cash final:', f'R$ {engine.cash:.2f}')
+    print('Portfolio value final:', f'R$ {engine.portfolio_value:.2f}')
+    print('Posições abertas:', engine.open_positions)
+    print('Trades fechados:', len(engine.closed_positions))
+    print('Dias simulados:', len(engine.daily_history))

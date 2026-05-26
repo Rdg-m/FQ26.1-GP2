@@ -125,7 +125,8 @@ class MA(estrat):
                 
                 if decisao is True and prev is not True:
                     # Cruzamento para cima - sinal de COMPRA
-                    quantity = int(self.saldo / (len(self.memoria) * price) * price) if self.saldo > 0 else 0
+                    saldo_por_ativo = self.saldo / len(assets) if assets else self.saldo
+                    quantity = int(saldo_por_ativo / price) if self.saldo > 0 else 0
                     if quantity > 0:
                         signal = self._generate_signal(
                             symbol=symbol,
