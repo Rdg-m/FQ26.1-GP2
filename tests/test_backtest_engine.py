@@ -51,7 +51,7 @@ class TestBacktestEngine:
             'quantity': 10
         }
 
-        new_cost, new_quantity = engine.overspending(signal)
+        new_cost, new_quantity = engine._overspending(signal)
 
         assert new_quantity < 10
         assert new_cost == new_quantity * signal['price'] * (1 + engine.commission)
