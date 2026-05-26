@@ -122,14 +122,10 @@ Ele ainda não está completo, mas já tem um núcleo de engine funcional e modo
    - `graphing.py`
    - empacotamento/pip install
    - fluxo de backtest completo
-6. **Refinar interface e CLI**
-   - menu interativo ou linha de comando
-   - seleção de ativos, período e estratégia
-   - exibição de métricas e gráficos
+
 
 ### Problemas conhecidos
 
-- `interface.py` não faz roteamento real de operações
 - métricas de backtest permanecem teóricas, sem implementação completa no engine
 
 ## 5. Projeto e como usá-lo como biblioteca pip
