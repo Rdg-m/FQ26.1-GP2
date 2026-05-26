@@ -265,7 +265,7 @@ from src.dataprocessing.clean import clean_data
 from src.dataprocessing.mov_brow import MBG
 _config = {
     "over_spend": False,
-    "mov_brown_parans": {'m' : 0, 'o' : 5}, #var diária tirada do cu
+    "mov_brown_parans": {'m' : 0.1, 'o' : .5}, #var diária tirada do cu
     "dado_real": True,
     "periodos" : 1000,
     "time_period": 'd' #ano y, dia d, mes M, minuto m
@@ -307,19 +307,19 @@ class BacktestEngine:
         # Obter parâmetros de configuração
         num_periodos = self._configs.get("periodos", 100)
         regime = self._configs.get("mov_brown_parans", {'m': 0, 'o': 50})
-        
+
         # Obter funções de movimento browniano
         MOV, Step = MBG(regime['m'], regime['o'])
         
         # Data inicial
         data_atual = pd.Timestamp('2024-01-01')
-        
+    
         for periodo in range(num_periodos):
             # Atualizar preços usando movimento browniano
             precos_atuais = {}
             for symbol in self.symbols:
                 fator_multiplo = Step()
-                precos_base[symbol] = max(1, precos_base[symbol] * fator_multiplo)
+                precos_base[symbol] = max(0, precos_base[symbol] * fator_multiplo)
                 precos_atuais[symbol] = precos_base[symbol]
             
             # Criar DataFrame OHLCV fictício para este período
@@ -574,35 +574,13 @@ class BacktestEngine:
 if __name__ == '__main__':
     from src.backtesting.modelos_pre_implementados import buy_and_hold
 
-    class StrategyAdapter:
-        def __init__(self, model):
-            self.model = model
-
-        def generate_signals(self, ohlcv):
-            assets = []
-            for _, row in ohlcv.iterrows():
-                if 'symbol' in row and 'close' in row:
-                    assets.append({'symbol': row['symbol'], 'price': row['close']})
-
-            signals = self.model.com(assets)
-            if not signals:
-                return None
-
-            normalized = []
-            for sinal in signals:
-                if 'type' in sinal and 'signal_type' not in sinal:
-                    sinal['signal_type'] = sinal.pop('type')
-                normalized.append(sinal)
-
-            return normalized
-
     symbols = ['PETR4', 'VALE5', 'ITUB4']
     engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital=10000.0)
     engine._configs['dado_real'] = False
     engine._configs['periodos'] = 15
 
     print('Executando backtest browniano com estratégia buy_and_hold...')
-    strategy = StrategyAdapter(buy_and_hold(10000.0))
+    strategy = buy_and_hold(10000.0)
     engine.run(strategy)
 
     print('\nRESULTADOS DO BACKTEST')
@@ -611,4 +589,3 @@ if __name__ == '__main__':
     print('Posições abertas:', engine.open_positions)
     print('Trades fechados:', len(engine.closed_positions))
     print('Dias simulados:', len(engine.daily_history))
-    print(engine.daily_history)

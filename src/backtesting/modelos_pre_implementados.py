@@ -6,6 +6,7 @@ Ou eles sejam usados pelo backtest, depende da lógica de OOP.
 """
 
 from typing import Any, List, Dict
+from collections.abc import Iterable
 import random
 
 
@@ -26,7 +27,7 @@ class estrat:
         """Cria estrutura padrão de sinal para backtesting"""
         return {
             'symbol': symbol,
-            'type': signal_type,  # 'BUY' ou 'SELL'
+            'signal_type': signal_type,  # 'BUY' ou 'SELL'
             'price': price,
             'quantity': quantity,
             'reason': reason
@@ -37,7 +38,36 @@ class estrat:
         Recebe lista de dicts com {'symbol': '...', 'price': ...}
         Retorna lista de sinais a executar
         """
-        pass
+        raise NotImplementedError()
+
+    def generate_signals(self, ohlcv) -> List[Dict] | None:
+        """
+        Adapter method so strategy instances can be passed directly to
+        BacktestEngine. Accepts either a DataFrame-like object (with
+        `iterrows`) or a list of asset dicts and returns the signals
+        produced by `com`.
+        """
+        assets: List[Dict] = []
+
+        # DataFrame-like: iterate rows and extract symbol/close
+        if hasattr(ohlcv, "iterrows"):
+            for _, row in ohlcv.iterrows():
+                try:
+                    if 'symbol' in row and 'close' in row:
+                        assets.append({'symbol': row['symbol'], 'price': row['close']})
+                except Exception:
+                    continue
+
+        # List-like: assume it's already a list of asset dicts
+        elif isinstance(ohlcv, Iterable):
+            try:
+                # e.g. [{'symbol':..,'price':..}, ...]
+                assets = list(ohlcv)
+            except Exception:
+                assets = []
+
+        # Fallback: return whatever `com` produces for the assets list
+        return self.com(assets)
 
 
 class buy_and_hold(estrat):
