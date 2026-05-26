@@ -257,11 +257,21 @@ NOTAS:
 """
 import pandas as pd
 import numpy as np
-from datetime import datetime
+import random as rd
+from datetime import datetime, timedelta
 from typing import Callable
 from src.dataprocessing.load import load_data
 from src.dataprocessing.clean import clean_data
+from src.dataprocessing.mov_brow import MBG
+_config = {
+    "over_spend": False,
+    "mov_brown_parans": {'m' : 0, 'o' : 50}, #var diária tirada do cu
+    "dado_real": True,
+    "periodos" : 10,
+    "time_period": 'y' #ano y, dia d, mes M, minuto m
 
+
+}
 
 
 def solve_type(*a)-> Callable:
@@ -320,14 +330,6 @@ def set_regime(x:float=0, s:str=None, d:dict=_config['mov_brown_parans'])->dict:
     new_d['o'] = d.get('o')
     return new_d     
 
-_config = {
-    "over_spend": False,
-    "mov_brown_parans": {'m' : 0, 'o' : 50}, #var diária tirada do cu
-    "dado_real": True,
-    "periodos" : 10,
-    "time_period": 'y' #ano y, dia d, mes M, minuto m
-
-}
 
 class BacktestEngine:
     def __init__(self,data:pd.DataFrame,symbols:list,initial_capital:float=10000.0,commission:float=0.001):
@@ -351,43 +353,86 @@ class BacktestEngine:
         
 
     def run_brown(self, strategy_instance):
-        print('iniciado_o_back')
-        for date in datas_unicas: #trocar tudo!
-            ohlcv=self.data.loc[self.data.index==date]
-            sinais=strategy_instance.generate_signals(ohlcv)
-            for sinal in sinais:
-                tipo=sinal["signal_type"]
-                simbolo=sinal["symbol"]
-                preco=sinal["price"]
-                qtd=sinal['quantity']
-                # tempo=sinal["timestamp"]          # não está sendo usado -rod
-                # stop_loss=sinal["stop_loss"]
-                # take_profit=sinal["take_profit"]
-                # reason=sinal.get("reason")
-                # confidence=sinal.get("confidence")
-                # indicators=sinal.get("indicators")
-                if tipo=="BUY": self._execute_buy(sinal,date)
-                    
-                elif tipo=="SELL":
-                    if simbolo in self.open_positions:
-                        self._execute_sell(sinal,date)
-                    else: raise AttributeError('simbolo não está nas posições abertas', simbolo)
-                else: raise ValueError('Tipo de sinal mal formado', tipo)
+        """
+        Executa backtest usando dados fictícios gerados com Movimento Browniano Geométrico.
+        Usa os parâmetros em _configs para número de períodos, drift, volatilidade, etc.
+        """
+        print('iniciado_o_back (modo Browniano)')
+        
+        # Inicializar preços base para cada ativo
+        precos_base = {symbol: 100.0 for symbol in self.symbols}
+        
+        # Obter parâmetros de configuração
+        num_periodos = self._configs.get("periodos", 100)
+        regime = self._configs.get("mov_brown_parans", {'m': 0, 'o': 50})
+        
+        # Obter funções de movimento browniano
+        MOV, Step = MBG(regime['m'], regime['o'])
+        
+        # Data inicial
+        data_atual = pd.Timestamp('2024-01-01')
+        
+        for periodo in range(num_periodos):
+            # Atualizar preços usando movimento browniano
+            precos_atuais = {}
+            for symbol in self.symbols:
+                fator_multiplo = Step()
+                precos_base[symbol] = max(1.0, precos_base[symbol] * fator_multiplo)
+                precos_atuais[symbol] = precos_base[symbol]
+            
+            # Criar DataFrame OHLCV fictício para este período
+            # com variação intra-período realista
+            ohlcv_data = []
+            for symbol in self.symbols:
+                preco_close = precos_atuais[symbol]
+                preco_open = preco_close * (1 + rd.gauss(0, 0.005))
+                preco_high = max(preco_open, preco_close) * (1 + abs(rd.gauss(0, 0.01)))
+                preco_low = min(preco_open, preco_close) * (1 - abs(rd.gauss(0, 0.01)))
+                volume = int(1000000 * (1 + rd.gauss(0, 0.2)))
                 
-            vendas_forcadas=[]
-            for simbolo,posicao in self.open_positions.items():
-                dados_acao=ohlcv[ohlcv["symbol"]==simbolo]
+                ohlcv_data.append({
+                    'symbol': symbol,
+                    'open': preco_open,
+                    'high': preco_high,
+                    'low': preco_low,
+                    'close': preco_close,
+                    'volume': volume
+                })
+            
+            ohlcv = pd.DataFrame(ohlcv_data)
+            
+            # Gerar sinais da estratégia
+            sinais = strategy_instance.generate_signals(ohlcv)
+            
+            # Processar sinais
+            if sinais:
+                for sinal in sinais:
+                    tipo = sinal["signal_type"]
+                    simbolo = sinal["symbol"]
+                    
+                    if tipo == "BUY":
+                        self._execute_buy(sinal, data_atual)
+                    elif tipo == "SELL":
+                        if simbolo in self.open_positions:
+                            self._execute_sell(sinal, data_atual)
+            
+            # Verificar Stop Loss e Take Profit
+            vendas_forcadas = []
+            for simbolo, posicao in list(self.open_positions.items()):
+                dados_acao = ohlcv[ohlcv["symbol"] == simbolo]
                 if dados_acao.empty:
                     continue
-                minima=dados_acao["low"].iloc[0]
-                maxima=dados_acao["high"].iloc[0]
+                
+                minima = dados_acao["low"].iloc[0]
+                maxima = dados_acao["high"].iloc[0]
                 stop = posicao.get('stop_loss', 0.0)
                 alvo = posicao.get('take_profit', 0.0)
-                if stop>0 and minima<= stop:
+                
+                if stop > 0 and minima <= stop:
                     sinal_venda = {
                         "symbol": simbolo,
-                        "price": stop, 
-                        "quantity": posicao['quantity'], 
+                        "price": stop,
+                        "quantity": posicao['quantity'],
                         "reason": "Stop Loss Atingido"
                     }
                     vendas_forcadas.append(sinal_venda)
@@ -395,33 +440,37 @@ class BacktestEngine:
                     sinal_venda = {
                         "symbol": simbolo,
                         "price": alvo,
-                        "quantity": posicao['quantity'], 
+                        "quantity": posicao['quantity'],
                         "reason": "Take Profit Atingido"
                     }
                     vendas_forcadas.append(sinal_venda)
             
             for sinal in vendas_forcadas:
-                self._execute_sell(sinal, date)
-        
-            #analise do dia
+                self._execute_sell(sinal, data_atual)
+            
+            # Atualizar valor do portfolio
             valor_acoes = 0
             for simbolo, posicao in self.open_positions.items():
                 dados_da_acao = ohlcv[ohlcv['symbol'] == simbolo]
                 
                 if not dados_da_acao.empty:
                     preco_fechamento = dados_da_acao['close'].iloc[0]
-                    posicao['value'] = posicao['quantity'] * preco_fechamento       #atualiza -rod
+                    posicao['value'] = posicao['quantity'] * preco_fechamento
                 
-                valor_acoes += posicao['value']                                     #fica fora do if, pois se faltar não atualiza saquei -rod
-                
+                valor_acoes += posicao['value']
+            
             self.portfolio_value = self.cash + valor_acoes
             
             self.daily_history.append({
-                'date': date,
+                'date': data_atual,
                 'cash': self.cash,
                 'portfolio_value': self.portfolio_value
             })
-        print('back_finalizado')
+            
+            # Avançar para o próximo período
+            data_atual += timedelta(days=1)
+        
+        print('back_finalizado (modo Browniano)')
 
 
     def run_normal(self, strategy_instance):
