@@ -265,7 +265,7 @@ from src.dataprocessing.clean import clean_data
 from src.dataprocessing.mov_brow import MBG
 _config = {
     "over_spend": False,
-    "mov_brown_parans": {'m' : 1, 'o' : 50}, #var diária tirada do cu
+    "mov_brown_parans": {'m' : 0, 'o' : 5}, #var diária tirada do cu
     "dado_real": True,
     "periodos" : 1000,
     "time_period": 'd' #ano y, dia d, mes M, minuto m
@@ -391,8 +391,8 @@ class BacktestEngine:
             # Atualizar preços usando movimento browniano
             precos_atuais = {}
             for symbol in self.symbols:
-                fator_multiplo = MOV(periodo)
-                precos_base[symbol] = max(1.0, precos_base[symbol] * fator_multiplo)
+                fator_multiplo = Step()
+                precos_base[symbol] = max(1, precos_base[symbol] * fator_multiplo)
                 precos_atuais[symbol] = precos_base[symbol]
             
             # Criar DataFrame OHLCV fictício para este período
@@ -672,7 +672,7 @@ if __name__ == '__main__':
     symbols = ['PETR4', 'VALE5', 'ITUB4']
     engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital=10000.0)
     engine._configs['dado_real'] = False
-    engine._configs['periodos'] = 1000
+    engine._configs['periodos'] = 15
 
     print('Executando backtest browniano com estratégia buy_and_hold...')
     strategy = StrategyAdapter(buy_and_hold(10000.0))
@@ -684,3 +684,4 @@ if __name__ == '__main__':
     print('Posições abertas:', engine.open_positions)
     print('Trades fechados:', len(engine.closed_positions))
     print('Dias simulados:', len(engine.daily_history))
+    print(engine.daily_history)
