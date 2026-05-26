@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from src.graphing.graphing import plot_equity_curve, plot_drawdown
+from graphing.graphing import plot_equity_curve, plot_drawdown
 
 def rodar_testes_visuais():
     print("Iniciando bateria de testes de gráficos...\n")

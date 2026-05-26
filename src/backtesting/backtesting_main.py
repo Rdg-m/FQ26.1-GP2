@@ -233,7 +233,7 @@ CONFIGURAÇÕES CUSTOMIZÁVEIS:
 - Número máximo de posições abertas
 
 EXEMPLO DE USO:
-    from src.backtesting.backtesting_main import run_backtest
+    from backtesting.backtesting_main import run_backtest
     
     results = run_backtest(
         symbols=['PETR4', 'VALE5'],
@@ -260,9 +260,9 @@ import numpy as np
 import random as rd
 from datetime import datetime, timedelta
 from typing import Callable
-from src.dataprocessing.load import load_data
-from src.dataprocessing.clean import clean_data
-from src.dataprocessing.mov_brow import MBG
+from dataprocessing.load import load_data
+from dataprocessing.clean import clean_data
+from dataprocessing.mov_brow import MBG
 _config = {
     "over_spend": False,
     "mov_brown_parans": {'m' : 0.1, 'o' : .5}, #var diária tirada do cu
@@ -538,7 +538,7 @@ if __name__ == '__main__':
         print('Trades fechados:', len(engine.closed_positions))
         print('Dias simulados:', len(engine.daily_history))
 
-    from src.backtesting.modelos_pre_implementados import buy_and_hold
+    from .modelos_pre_implementados import buy_and_hold
     initial_capital =10000.0
     symbols = ['PETR4', 'VALE5', 'ITUB4']
     _config['dado_real'] = False
@@ -553,7 +553,7 @@ if __name__ == '__main__':
     print_resultados(engine)
     del engine
 
-    from src.backtesting.modelos_pre_implementados import MA
+    from .modelos_pre_implementados import MA
 
     _config['periodos'] = 150
     engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital)
@@ -566,7 +566,7 @@ if __name__ == '__main__':
     print_resultados(engine)
     del engine
 
-    from src.backtesting.modelos_pre_implementados import EMA
+    from .modelos_pre_implementados import EMA
 
 
     engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital)

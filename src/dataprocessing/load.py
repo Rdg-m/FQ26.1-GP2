@@ -87,7 +87,7 @@ DEPENDÊNCIAS:
 - clean.py: Processamento de dados
 
 EXEMPLO DE USO:
-    from src.dataprocessing.load import load_data
+    from dataprocessing.load import load_data
     
     # Carregar de arquivo CSV
     df = load_data(filepath='./data/PETR4.csv', format='csv')

@@ -38,10 +38,10 @@ FLUXO DE INTERFACE:
 7. Retorna ao menu (ou sai se solicitado)
 
 DEPENDÊNCIAS EXTERNAS:
-- src.backtesting.backtesting_main (orquestração principal)
-- src.dataprocessing.load (carregamento de dados)
-- src.dataprocessing.clean (limpeza de dados)
-- src.graphing.graphing (visualização de resultados)
+- backtesting.backtesting_main (orquestração principal)
+- dataprocessing.load (carregamento de dados)
+- dataprocessing.clean (limpeza de dados)
+- graphing.graphing (visualização de resultados)
 
 CARACTERÍSTICAS:
 - Flexível e extensível para novos tipos de operações
@@ -58,5 +58,5 @@ NOTAS:
 
 def main():
     """Ponto de entrada da interface do usuário."""
-    print("FQ26GP2 interface entry point is available.")
+    print("back_da_dev interface entry point is available.")
 

@@ -1,199 +1,206 @@
-# Fluxograma de Estratégia - Sistema de Backtesting
+# Fluxograma de Implementação Atual — FQ26.1-GP2
 
-## 1. Visão Geral do Fluxo em Cascata
+## 1. Visão Geral Atual do Projeto
 
-A interação entre arquivos funcionará com o seguinte modelo de cascata:
+O projeto está construindo uma biblioteca de backtesting financeiro com:
+- carregamento de dados históricos
+- limpeza e validação de séries temporais
+- motor de backtesting de ordens e posições
+- estratégias básicas de trading
+- utilitários de gráficos e indicadores técnicos
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      PONTO DE ENTRADA                           │
-│                      (main.py)                                  │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    INTERFACE DO USUÁRIO                         │
-│              (code/interface/interface.py)                      │
-│  - Exibe opções de operações disponíveis                       │
-│  - Captura escolhas do usuário                                 │
-│  - Roteia para módulo apropriado                               │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              ORQUESTRAÇÃO DO BACKTEST PRINCIPAL                 │
-│          (code/backtesting/backtesting_main.py)                │
-│  - Coordena todo o processo de backtesting                     │
-│  - Gerencia capital e portfolio                                │
-│  - Executa ordens de compra/venda                              │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-            ┌──────────────┴──────────────┐
-            │                             │
-            ▼                             ▼
-┌──────────────────────────┐   ┌──────────────────────────┐
-│  CARREGAMENTO DE DADOS   │   │  IMPLEMENTAÇÃO DA        │
-│  (load.py)               │   │  ESTRATÉGIA DE NEGÓCIOS  │
-│                          │   │  (estrategy.py)          │
-│ - Lê múltiplos formatos  │   │                          │
-│   (CSV, XLSX, JSON, TXT) │   │ - Define regras de entrada│
-│ - Acessa APIs financeiras│   │ - Define regras de saída │
-│ - Retorna dataframes     │   │ - Calcula indicadores    │
-└──────────┬───────────────┘   │ - Gera sinais de negócio │
-           │                   └──────────────────────────┘
-           ▼
-┌──────────────────────────┐
-│  LIMPEZA DE DADOS        │
-│  (clean.py)              │
-│                          │
-│ - Trata valores ausentes │
-│ - Converte tipos de dados│
-│ - Normaliza dados        │
-│ - Valida consistência    │
-└──────────┬───────────────┘
-           │
-           └──────────────────────┬─────────────────────┐
-                                  │                     │
-                                  ▼                     ▼
-                        ┌──────────────────────┐ ┌─────────────────┐
-                        │  PROCESSAMENTO DO    │ │  CÁLCULO DE     │
-                        │  BACKTEST            │ │  INDICADORES    │
-                        │                      │ │                 │
-                        │ - Itera períodos     │ │ - Médias móveis │
-                        │ - Aplica estratégia  │ │ - RSI           │
-                        │ - Atualiza portfolio │ │ - MACD          │
-                        └──────────┬───────────┘ │ - Outros        │
-                                   │             └─────────────────┘
-                                   │
-                                   ▼
-                        ┌──────────────────────┐
-                        │ CÁLCULO DE RESULTADOS│
-                        │                      │
-                        │ - Lucro/Prejuízo     │
-                        │ - Retorno %          │
-                        │ - Drawdown           │
-                        │ - Métricas de risco  │
-                        └──────────┬───────────┘
-                                   │
-                                   ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                GERAÇÃO DE GRÁFICOS E LOGS                       │
-│              (code/graphing/graphing.py)                        │
-│  - Gráficos de desempenho                                       │
-│  - Tabelas de resultados                                        │
-│  - Gráficos de barras, linhas, pizza                            │
-│  - Exportação em múltiplos formatos                             │
-└─────────────────────────────────────────────────────────────────┘
-```
+Ele ainda não está completo, mas já tem um núcleo de engine funcional e modos de simulação.
 
-## 2. Fluxo de Dados Detalhado
-
-### 2.1 Entrada de Dados
-- **Localização**: Dados depositados em `./data/`
-- **Formatos Suportados**: CSV, XLSX, JSON, TXT
-- **APIs**: Integrações com provedores de dados financeiros
-- **Saída**: Dataframes pandas com dados históricos
-
-### 2.2 Processamento de Dados
-1. **Carregamento** (load.py):
-   - Importar bibliotecas (pandas, numpy, etc.)
-   - Definir caminhos de arquivo e credenciais de API
-   - Ler dados e armazená-los em dataframes
-
-2. **Limpeza** (clean.py):
-   - Tratar valores ausentes (NaN, None)
-   - Converter tipos de dados (string → float, int, datetime)
-   - Normalizar dados (escala, formatação)
-   - Validar integridade dos dados
-
-### 2.3 Processamento do Backtest
-1. **Estratégia** (estrategy.py):
-   - Calcular indicadores técnicos
-   - Aplicar regras de entrada (condições de compra)
-   - Aplicar regras de saída (condições de venda)
-   - Gerar sinais de negócio
-
-2. **Execução** (backtesting_main.py):
-   - Iterar sobre períodos de tempo
-   - Executar sinais de compra/venda
-   - Atualizar capital disponível
-   - Registrar histórico de posições
-   - Calcular métricas de desempenho
-
-### 2.4 Visualização de Resultados
-- Criar gráficos de desempenho
-- Gerar tabelas de resumo
-- Exportar relatórios
-- Salvar logs e histórico
-
-## 3. Pontos de Decisão e Branches
+## 2. Arquitetura Atual
 
 ```
-┌─────────────────────────────────┐
-│   Qual é a ação desejada?       │
-└────────────┬────────────────────┘
+┌────────────────────────────────────────────┐
+│         src/interface/interface.py         │
+│  - ponto de entrada de interface (stub)    │
+│  - atualmente apenas imprime uma mensagem  │
+└────────────────────────────┬───────────────┘
+                             │
+                             ▼
+┌────────────────────────────────────────────┐
+│    src/backtesting/backtesting_main.py     │
+│  - BacktestEngine                           │
+│  - execução de BUY/SELL                     │
+│  - stop loss / take profit                  │
+│  - histórico diário e valor do portfólio    │
+│  - modo normal e modo browniano             │
+└────────────────────────────┬───────────────┘
+                             │
+             ┌───────────────┴──────────────┐
+             │                              │
+             ▼                              ▼
+┌──────────────────────────┐       ┌──────────────────────────────────┐
+│ src/dataprocessing/load.py │     │ src/backtesting/modelos_pre_implementados.py │
+│ - CSV/JSON/XLSX             │     │ - buy_and_hold                         │
+│ - yfinance                  │     │ - MA / EMA                             │
+│ - valida colunas OHLCV      │     │ - adaptador de sinais                  │
+└───────────────────────────┘       └──────────────────────────────────┘
              │
-      ┌──────┴──────┬──────────────┬──────────────┐
-      │             │              │              │
-      ▼             ▼              ▼              ▼
-  Backtest     Carregar     Processar      Visualizar
-   (Padrão)   Novos Dados   Dados          Resultados
-      │             │              │              │
-      └──────────┬──────────────┬──┴──────────┬───┘
-                 │              │             │
-          [Continuar]     [Continuar]  [Exibir gráficos]
+             ▼
+┌────────────────────────────────────────────┐
+│ src/dataprocessing/clean.py                │
+│ - converte tipos                            │
+│ - trata NaN                                │
+│ - remove inconsistências                    │
+│ - ordena índice                             │
+└────────────────────────────────────────────┘
+             │
+             ▼
+┌────────────────────────────────────────────┐
+│ src/graphing/graphing.py                    │
+│ - plotagem matplolib com temas              │
+│ - gráficos de equity e drawdown             │
+│ - cálculo de RSI/MACD/Bollinger             │
+└────────────────────────────────────────────┘
 ```
 
-## 4. Dependências Entre Módulos
+## 3. O que já foi feito
 
-| Módulo | Depende De | Fornece Para |
-|--------|-----------|--------------|
-| main.py | Nenhum | interface.py |
-| interface.py | backtesting_main.py, load.py, graphing.py | Usuário |
-| backtesting_main.py | load.py, clean.py, estrategy.py, graphing.py | interface.py |
-| load.py | Arquivos de dados externos, APIs | backtesting_main.py, clean.py |
-| clean.py | load.py | backtesting_main.py |
-| estrategy.py | Nenhum | backtesting_main.py |
-| graphing.py | backtesting_main.py (dados de resultado) | interface.py, Arquivos de exportação |
+### Módulos implementados
 
-## 5. Fluxo de Execução Passo a Passo
+- `BacktestEngine` em `src/backtesting/backtesting_main.py`
+  - compra e venda de ordens
+  - posições abertas e fechadas
+  - atualização de capital
+  - histórico diário de portfólio
+  - stop loss / take profit
+  - simulação browniana e execução normal
+- Estratégias em `src/backtesting/modelos_pre_implementados.py`
+  - base `estrat`
+  - `buy_and_hold`
+  - `MA` com SMA
+  - `EMA` com EMA
+- Carregamento de dados em `src/dataprocessing/load.py`
+  - suporte a arquivo local e yfinance
+  - validação de colunas mínimas
+- Limpeza em `src/dataprocessing/clean.py`
+  - conversão de tipos
+  - tratamento de NaN
+  - remoção de linhas inconsistentes
+  - ordenação por índice temporal
+- Visualização em `src/graphing/graphing.py`
+  - tema de plotagem
+  - funções de indicadores técnicos
+  - plots de série temporal, equity curve e drawdown
+- Testes em `tests/`
+  - cobertura do motor de backtest
+  - cobertura das estratégias
 
-1. **Inicialização**
-   - `main.py` é executado
-   - Carrega `interface.py`
+### Resultados reais existentes
 
-2. **Seleção de Operação**
-   - Usuário escolhe ação padrão (backtest)
-   - Interface roteia para `backtesting_main.py`
+- o backtest funciona em modo browniano
+- o engine registra fluxo de posições e cash
+- existe suporte básico para estratégia plugável
+- o projeto já possui `pyproject.toml` para empacotamento
 
-3. **Carregamento de Dados**
-   - `backtesting_main.py` chama `load.py`
-   - `load.py` lê dados de `./data/`
-   - Retorna dataframes com dados históricos
+## 4. O que ainda falta implementar
 
-4. **Limpeza de Dados**
-   - `backtesting_main.py` chama `clean.py`
-   - `clean.py` processa dataframes
-   - Retorna dados limpos e validados
+### Prioridades
 
-5. **Execução do Backtest**
-   - `backtesting_main.py` itera períodos
-   - Para cada período, consulta `estrategy.py`
-   - `estrategy.py` retorna sinais de compra/venda
-   - `backtesting_main.py` executa as ordens
-   - Atualiza capital, portfolio e histórico
+1. **Completar integração do fluxo**
+   - `load_data` → `clean_data` → `BacktestEngine.run()` → `graphing`
+   - conectar `src/interface/interface.py` à pipeline real
+2. **Corrigir empacotamento e imports**
+   - imports atualizados para caminhos de pacote instaláveis
+   - revisar `src/back_da_dev/__main__.py` e o nome do pacote
+3. **Adicionar métricas de desempenho**
+   - retorno total e anualizado
+   - drawdown máximo
+   - Sharpe, Sortino, win rate, profit factor
+   - métricas de trades fechados
+4. **Melhorar saídas de resultados**
+   - exportar gráficos e relatórios
+   - salvar CSV / JSON de resultados
+   - adicionar logs de execução
+5. **Ampliar testes**
+   - `load.py` e `clean.py`
+   - `graphing.py`
+   - empacotamento/pip install
+   - fluxo de backtest completo
+6. **Refinar interface e CLI**
+   - menu interativo ou linha de comando
+   - seleção de ativos, período e estratégia
+   - exibição de métricas e gráficos
 
-6. **Cálculo de Resultados**
-   - `backtesting_main.py` calcula métricas:
-     - Lucro/Prejuízo total
-     - Retorno percentual
-     - Drawdown máximo
-     - Taxa de Sharpe
-     - Fator de lucro
-     - Outros indicadores de risco
+### Problemas conhecidos
 
-7. **Visualização**
-   - `backtesting_main.py` chama `graphing.py`
-   - `graphing.py` cria gráficos e tabelas
-   - Salva resultados em arquivos
-   - Exibe para o usuário via `interface.py`
+- `interface.py` não faz roteamento real de operações
+- métricas de backtest permanecem teóricas, sem implementação completa no engine
+
+## 5. Projeto e como usá-lo como biblioteca pip
+
+### O que é o projeto
+
+FQ26.1-GP2 é uma biblioteca Python para backtesting e análise de estratégias financeiras.
+Ele reúne:
+- processamento de dados históricos
+- estratégias de trading protótipo
+- motor de execução e simulação
+- visualização de resultados
+
+O foco atual é construir uma base reutilizável para desenvolvedores e pesquisadores.
+
+### Pacote pip
+
+O `pyproject.toml` está configurado com:
+- `name = "Back_da_dev"`
+- `version = "0.0.1"`
+- `requires-python = ">=3.11"`
+- dependências: `matplotlib`, `numpy`, `pandas`, `requests`, `yfinance`
+
+### Instalação local
+
+No diretório do projeto:
+
+```bash
+python -m pip install -e .
+```
+
+ou
+
+```bash
+python -m pip install .
+```
+
+### Importação após instalação
+
+Após instalar, o ideal é importar pelo nome do pacote:
+
+```python
+from backtesting.backtesting_main import BacktestEngine
+from dataprocessing.load import load_data
+from dataprocessing.clean import clean_data
+from graphing.graphing import plot_equity_curve
+```
+
+> Atenção: antes de publicar, verifique que os imports usem caminhos de pacote instaláveis.
+
+### Exemplo rápido
+
+```python
+from dataprocessing.load import load_data
+from dataprocessing.clean import clean_data
+from backtesting.backtesting_main import BacktestEngine
+from backtesting.modelos_pre_implementados import buy_and_hold
+
+raw = load_data(indice='PETR4.SA', fonte='yfinance', tempo='1mo')
+clean = clean_data(raw, handle_missing='ffill')
+engine = BacktestEngine(clean, ['PETR4.SA'], initial_capital=10000.0, commission=0.001)
+strategy = buy_and_hold(10000.0)
+engine._configs['dado_real'] = True
+engine.run(strategy)
+print(engine.cash, engine.portfolio_value)
+```
+
+### O que precisa antes de publicar no PyPI
+
+- remoção de imports `src.*` do código ativo
+- interface CLI funcional
+- documentação no README
+- testes de empacotamento
+- métricas e relatórios completos
+- validação dos módulos importáveis

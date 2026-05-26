@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 from datetime import datetime, timedelta
-from src.backtesting import BacktestEngine
+from backtesting import BacktestEngine
 
 
 class DummyStrategy:

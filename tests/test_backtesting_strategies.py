@@ -1,5 +1,5 @@
 import pytest
-from src.backtesting.modelos_pre_implementados import buy_and_hold, MA, EMA
+from backtesting.modelos_pre_implementados import buy_and_hold, MA, EMA
 
 
 class TestBuyAndHoldStrategy:

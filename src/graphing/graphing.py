@@ -180,7 +180,7 @@ Idioma:
 - 'en': Inglês
 
 EXEMPLO DE USO:
-    from src.graphing.graphing import (
+    from graphing.graphing import (
         plot_equity_curve,
         plot_trades,
         generate_report
@@ -532,7 +532,7 @@ def plot_drawdown(
     df_history = pd.DataFrame(daily_history)
     
     if df_history.empty or 'date' not in df_history.columns or 'portfolio_value' not in df_history.columns:
-        print("\Dados insuficientes para gerar o Drawdown")
+        print("\nDados insuficientes para gerar o Drawdown")
         return plt.gca()
 
     picos_acumulados = df_history['portfolio_value'].cummax()
