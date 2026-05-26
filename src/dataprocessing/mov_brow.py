@@ -5,7 +5,8 @@ import math
 def brow(t):
     return rd.normalvariate(0, t) 
 
-def MBG(m:float | int, o:float | int, seed:int = 42) -> tuple[Callable[..., float], Callable[..., float]]:
+
+def MBG(m:float | int, o:float | int, seed:int = 40) -> tuple[Callable[..., float], Callable[..., float]]:
     rd.seed(seed)
     # seta params da série
     def M(t:float | int)-> float:
@@ -16,9 +17,8 @@ def MBG(m:float | int, o:float | int, seed:int = 42) -> tuple[Callable[..., floa
     def step()-> float:
         #retorna o fator de atualização num tempo discreto 1
         return math.exp((m-(o**2)/2) + o*brow(1))
+
     
     return M, step
 
 
-
-        
