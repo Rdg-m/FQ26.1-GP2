@@ -573,14 +573,49 @@ class BacktestEngine:
 
 if __name__ == '__main__':
     from src.backtesting.modelos_pre_implementados import buy_and_hold
-
+    initial_capital =10000.0
     symbols = ['PETR4', 'VALE5', 'ITUB4']
-    engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital=10000.0)
-    engine._configs['dado_real'] = False
-    engine._configs['periodos'] = 15
+    _config['dado_real'] = False
+    _config['periodos'] = 15
+    engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital)
+
 
     print('Executando backtest browniano com estratégia buy_and_hold...')
-    strategy = buy_and_hold(10000.0)
+    strategy = buy_and_hold(initial_capital)
+    engine.run(strategy)
+
+    print('\nRESULTADOS DO BACKTEST')
+    print('Cash final:', f'R$ {engine.cash:.2f}')
+    print('Portfolio value final:', f'R$ {engine.portfolio_value:.2f}')
+    print('Posições abertas:', engine.open_positions)
+    print('Trades fechados:', len(engine.closed_positions))
+    print('Dias simulados:', len(engine.daily_history))
+  
+    from src.backtesting.modelos_pre_implementados import MA
+
+    _config['periodos'] = 150
+    engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital)
+    
+
+    print('Executando backtest browniano com estratégia buy_and_hold...')
+    strategy = MA(initial_capital)
+    engine.run(strategy)
+
+    print('\nRESULTADOS DO BACKTEST')
+    print('Cash final:', f'R$ {engine.cash:.2f}')
+    print('Portfolio value final:', f'R$ {engine.portfolio_value:.2f}')
+    print('Posições abertas:', engine.open_positions)
+    print('Trades fechados:', len(engine.closed_positions))
+    print('Dias simulados:', len(engine.daily_history))
+
+    from src.backtesting.modelos_pre_implementados import EMA
+
+
+    engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital)
+
+
+    print('Executando backtest browniano com estratégia buy_and_hold...')
+    strategy = EMA(initial_capital)
     engine.run(strategy)
 
     print('\nRESULTADOS DO BACKTEST')
