@@ -10,7 +10,12 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [ "PedroTsuchie1", "Rdg-m", "lucasnavis", "Vicente1526" ]
+authors = [
+  { name = "PedroTsuchie1" },
+  { name = "Rdg-m" },
+  { name = "lucasnavis" },
+  { name = "Vicente1526" },
+]
 dependencies = [
   "matplotlib",
   "numpy",

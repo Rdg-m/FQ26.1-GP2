@@ -198,6 +198,5 @@ print(engine.cash, engine.portfolio_value)
 - remoção de imports `src.*` do código ativo
 - interface CLI funcional
 - documentação no README
-- testes de empacotamento
 - métricas e relatórios completos
 - validação dos módulos importáveis
