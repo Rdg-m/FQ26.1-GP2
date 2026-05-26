@@ -292,7 +292,21 @@ class BacktestEngine:
     def run(self,strategy_instance):
         if self._configs["dado_real"] == True: self._run_normal(strategy_instance)
         else: self._run_brown(strategy_instance)
+
+    def _fluxo_padrao(self, ohlcv, strategy_instance):
+        # Gerar sinais da estratégia
+        # Processar sinais
+        sinais = strategy_instance.generate_signals(ohlcv)
+        if sinais: self._processar_sinal(sinais)
         
+        # Verificar Stop Loss e Take Profit
+        vendas_forcadas = self._verificar_stop_take(ohlcv)
+        for sinal in vendas_forcadas:
+            self._execute_sell(sinal)
+        
+        # Atualizar valor do portfolio
+        self._atualizar_valor_protifolio(ohlcv)
+
     def _run_brown(self, strategy_instance):
         """
         Executa backtest usando dados fictícios gerados com Movimento Browniano Geométrico.
@@ -323,20 +337,7 @@ class BacktestEngine:
             # com variação intra-período realista
             ohlcv = self._criar_ohlcv(precos_atuais)
             
-            # Gerar sinais da estratégia
-            sinais = strategy_instance.generate_signals(ohlcv)
-            
-            # Processar sinais
-            if sinais: self._processar_sinal(sinais)
-            
-            # Verificar Stop Loss e Take Profit
-            vendas_forcadas = self._verificar_stop_take(ohlcv)
-            
-            for sinal in vendas_forcadas:
-                self._execute_sell(sinal)
-            
-            # Atualizar valor do portfolio
-            self._atualizar_valor_protifolio(ohlcv)
+            self._fluxo_padrao(ohlcv, strategy_instance)
             
             # Avançar para o próximo período
             self.data_atual += self._time_delta(1)
@@ -442,16 +443,7 @@ class BacktestEngine:
         for date in datas_unicas:
             ohlcv=self.data.loc[self.data.index==date]
 
-            sinais=strategy_instance.generate_signals(ohlcv)
-            if sinais: self._processar_sinal(sinais)
-                
-            vendas_forcadas= self._verificar_stop_take(ohlcv)
-
-            for sinal in vendas_forcadas:
-                self._execute_sell(sinal)
-        
-            #analise do dia
-            self._atualizar_valor_protifolio(ohlcv)
+            self._fluxo_padrao(ohlcv, strategy_instance)
 
         print('back_finalizado')
 
@@ -534,7 +526,18 @@ class BacktestEngine:
             del self.open_positions[simbolo]
 
 
+
 if __name__ == '__main__':
+    # fazendo vários exemplos para ficar mais ilustrado como usar o módulo talvez
+    # só criar essa f pra ficar menos código em baixo:
+    def print_resultados(engine):
+        print('\nRESULTADOS DO BACKTEST')
+        print('Cash final:', f'R$ {engine.cash:.2f}')
+        print('Portfolio value final:', f'R$ {engine.portfolio_value:.2f}')
+        print('Posições abertas:', engine.open_positions)
+        print('Trades fechados:', len(engine.closed_positions))
+        print('Dias simulados:', len(engine.daily_history))
+
     from src.backtesting.modelos_pre_implementados import buy_and_hold
     initial_capital =10000.0
     symbols = ['PETR4', 'VALE5', 'ITUB4']
@@ -547,29 +550,21 @@ if __name__ == '__main__':
     strategy = buy_and_hold(initial_capital)
     engine.run(strategy)
 
-    print('\nRESULTADOS DO BACKTEST')
-    print('Cash final:', f'R$ {engine.cash:.2f}')
-    print('Portfolio value final:', f'R$ {engine.portfolio_value:.2f}')
-    print('Posições abertas:', engine.open_positions)
-    print('Trades fechados:', len(engine.closed_positions))
-    print('Dias simulados:', len(engine.daily_history))
-  
+    print_resultados(engine)
+    del engine
+
     from src.backtesting.modelos_pre_implementados import MA
 
     _config['periodos'] = 150
     engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital)
     
 
-    print('Executando backtest browniano com estratégia buy_and_hold...')
+    print('Executando backtest browniano com estratégia MA...')
     strategy = MA(initial_capital)
     engine.run(strategy)
 
-    print('\nRESULTADOS DO BACKTEST')
-    print('Cash final:', f'R$ {engine.cash:.2f}')
-    print('Portfolio value final:', f'R$ {engine.portfolio_value:.2f}')
-    print('Posições abertas:', engine.open_positions)
-    print('Trades fechados:', len(engine.closed_positions))
-    print('Dias simulados:', len(engine.daily_history))
+    print_resultados(engine)
+    del engine
 
     from src.backtesting.modelos_pre_implementados import EMA
 
@@ -577,13 +572,9 @@ if __name__ == '__main__':
     engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital)
 
 
-    print('Executando backtest browniano com estratégia buy_and_hold...')
+    print('Executando backtest browniano com estratégia EMA...')
     strategy = EMA(initial_capital)
     engine.run(strategy)
 
-    print('\nRESULTADOS DO BACKTEST')
-    print('Cash final:', f'R$ {engine.cash:.2f}')
-    print('Portfolio value final:', f'R$ {engine.portfolio_value:.2f}')
-    print('Posições abertas:', engine.open_positions)
-    print('Trades fechados:', len(engine.closed_positions))
-    print('Dias simulados:', len(engine.daily_history))
+    print_resultados(engine)
+    del engine
