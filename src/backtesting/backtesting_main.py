@@ -283,7 +283,7 @@ class BacktestEngine:
         self.initial_capital=initial_capital
         self.cash=initial_capital
         self.portfolio_value=initial_capital
-        self._configs = _config
+        self._configs = _config.copy()
         self.open_positions={}
         self.closed_positions=[] ##lista de dicionarios
         self.daily_history=[]    ##saldo de cada dia para fazermos os graficos
