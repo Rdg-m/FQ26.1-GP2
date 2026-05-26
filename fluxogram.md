@@ -103,7 +103,8 @@ Ele ainda não está completo, mas já tem um núcleo de engine funcional e modo
 
 1. **Completar integração do fluxo**
    - `load_data` → `clean_data` → `BacktestEngine.run()` → `graphing`
-   - conectar `src/interface/interface.py` à pipeline real
+   - fazer `src/interface/interface.py` acessar e dar inicio a pipeline real. 
+   - `src/interface/interface.py` deve ser capaz de alterar as _config do backtest
 2. **Corrigir empacotamento e imports**
    - imports atualizados para caminhos de pacote instaláveis
    - revisar `src/back_da_dev/__main__.py` e o nome do pacote
