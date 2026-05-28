@@ -1,52 +1,53 @@
-# FQ26.1-GP2
+# Back-da-dev
 
-## Project Title & Tagline
-**FEA.dev Backtesting Lab** — Fast prototyping and quantitative strategy backtesting for student researchers and curious investors.
 
-## Table of Contents
-- [About the Project](#about-the-project)
-- [Built With](#built-with)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Configuration](#configuration)
-- [Usage](#usage)
-  - [Python API](#python-api)
+## FQ26.1-GP2
+**FEA.dev Backtesting Lab** — Protótipos rápidos e backtesting quantitativo para estudantes e investidores curiosos.
+
+## Sumário
+- [Sobre o Projeto](#sobre-o-projeto)
+- [Construído Com](#constru%C3%ADdo-com)
+- [Começando](#come%C3%A7ando)
+  - [Pré-requisitos](#pr%C3%A9-requisitos)
+  - [Instalação](#instala%C3%A7%C3%A3o)
+  - [Configuração](#configura%C3%A7%C3%A3o)
+- [Uso](#uso)
+  - [API Python](#api-python)
   - [CLI](#cli)
-- [API Documentation](#api-documentation)
-- [Testing](#testing)
-- [Contributing](#contributing)
-- [License](#license)
+- [Documentação da API](#documenta%C3%A7%C3%A3o-da-api)
+- [Testes](#testes)
+- [Contribuindo](#contribuindo)
+- [Licença](#licen%C3%A7a)
 
-## About the Project
-This repository is a compact FEA.dev student project for fast backtesting and quantitative strategy prototyping. The code is designed to help league members explore trading ideas, validate signals, and generate performance summaries using historical market data.
+## Sobre o Projeto
+Este repositório é um projeto de estudante da FEA.dev para backtesting rápido e prototipagem de estratégias quantitativas. O código auxilia membros da liga a explorar ideias de trading, validar sinais e gerar resumos de desempenho a partir de dados históricos.
 
-It combines data ingestion, cleanup, strategy execution, and result visualization into a simple workflow. The goal is to make early quant research easy to iterate on while staying close to real-market concepts like commission, drawdown, and trade outcomes.
+Ele combina ingestão de dados, limpeza, execução de estratégia e visualização de resultados em um fluxo simples. O objetivo é tornar a pesquisa quant inicial rápida de iterar, mantendo conexão com conceitos reais de mercado como comissão, drawdown e resultados de trades.
 
-## Built With
+## Construído Com
 - Python `>=3.11`
-- `pandas` for time series and data pipeline handling
-- `numpy` for numeric operations
-- `matplotlib` for result visualization
-- `requests` for API access
-- `yfinance` for market history download
-- `pytest` for test coverage
+- `pandas` para manipulação de séries temporais e pipeline de dados
+- `numpy` para operações numéricas
+- `matplotlib` para visualização de resultados
+- `requests` para acesso a APIs
+- `yfinance` para download de histórico de mercado
+- `pytest` para cobertura de testes
 
-## Getting Started
+## Começando
 
-### Prerequisites
-- Python `3.11` or newer
-- `pip` package manager
-- Optionally, a virtual environment tool: `venv`, `virtualenv`, or `pipenv`
+### Pré-requisitos
+- Python `3.11` ou superior
+- gerenciador de pacotes `pip`
+- Opcionalmente, uma ferramenta de ambiente virtual: `venv`, `virtualenv` ou `pipenv`
 
-### Installation
-From the repository root:
+### Instalação
+A partir da raiz do repositório:
 
 ```bash
 python -m pip install -e .
 ```
 
-If you prefer a dedicated environment:
+Se preferir um ambiente dedicado:
 
 ```bash
 python -m venv .venv
@@ -55,19 +56,19 @@ source .venv/bin/activate   # Mac/Linux
 python -m pip install -e .
 ```
 
-### Configuration
-This project does not require special environment variables by default.
+### Configuração
+Este projeto não requer variáveis de ambiente especiais por padrão.
 
-- Use `yfinance` as the default data source
-- Place local files in `./data/` when loading from disk
-- If you need additional data providers, install optional dependencies manually
+- Use `yfinance` como fonte padrão de dados
+- Coloque arquivos locais em `./data/` ao carregar do disco
+- Se precisar de outras fontes de dados, instale dependências opcionais manualmente
 
-> If your workflow uses an external API or private credentials, add those details here later.
+> Se seu fluxo de trabalho usar API externa ou credenciais privadas, adicione esses detalhes aqui mais tarde.
 
-## Usage
+## Uso
 
-### Python API
-Import the public package entry point:
+### API Python
+Importe o ponto de entrada público do pacote:
 
 ```python
 from back_da_dev import run_standard_backtest, load_and_clean, list_strategies
@@ -86,7 +87,7 @@ result = run_standard_backtest(
 print(result.metrics)
 ```
 
-Generate a report after a backtest:
+Gere um relatório após um backtest:
 
 ```python
 from back_da_dev import generate_backtest_report
@@ -101,59 +102,59 @@ print(report.log_path)
 ```
 
 ### CLI
-Run the package as a module:
+Execute o pacote como módulo:
 
 ```bash
 python -m back_da_dev --indice PETR4.SA --strategy ma --initial-capital 10000 --output-dir ./results
 ```
 
-Example options:
-- `--indice`: ticker symbol for yfinance load
-- `--strategy`: `buy_and_hold`, `ma`, or `ema`
-- `--initial-capital`: starting capital
-- `--commission`: trading commission rate
-- `--output-dir`: where graphs and logs are saved
-- `--no-graphs`: disable graph generation
-- `--no-log`: disable log output
+Opções de exemplo:
+- `--indice`: símbolo do ticker para carregar via yfinance
+- `--strategy`: `buy_and_hold`, `ma` ou `ema`
+- `--initial-capital`: capital inicial
+- `--commission`: taxa de corretagem por operação
+- `--output-dir`: onde gráficos e logs serão salvos
+- `--no-graphs`: desativa geração de gráficos
+- `--no-log`: desativa geração de arquivo de log
 
-## API Documentation
-The public package exposes the main backtesting workflow:
+## Documentação da API
+O pacote público expõe o fluxo principal de backtesting:
 
-- `BacktestEngine` — core engine for running strategy simulations
-- `load_data(...)` — load historical data from local files or `yfinance`
-- `clean_data(...)` — clean, normalize, and validate loaded data
-- `load_and_clean(...)` — combined data load + cleanup flow
-- `resolve_strategy(...)` — instantiate a built-in strategy by name
-- `run_standard_backtest(...)` — execute a backtest and return metrics
-- `generate_backtest_report(...)` — save graphs and logs for a completed run
-- `save_backtest_log(...)` — serialize metrics and trade history to `.log`
-- `list_strategies()` — list available strategy names
+- `BacktestEngine` — motor principal para executar simulações de estratégia
+- `load_data(...)` — carrega dados históricos de arquivos locais ou `yfinance`
+- `clean_data(...)` — limpa, normaliza e valida dados carregados
+- `load_and_clean(...)` — fluxo combinado de carregamento e limpeza
+- `resolve_strategy(...)` — instancia uma estratégia embutida pelo nome
+- `run_standard_backtest(...)` — executa um backtest e retorna métricas
+- `generate_backtest_report(...)` — salva gráficos e logs para uma execução concluída
+- `save_backtest_log(...)` — serializa métricas e histórico de trade em `.log`
+- `list_strategies()` — lista nomes de estratégias disponíveis
 
-## Testing
-Run the repository test suite with:
+## Testes
+Execute a suíte de testes do repositório com:
 
 ```bash
 pytest -q
 ```
 
-This project includes tests for:
-- backtest engine behavior
-- strategy signal generation
-- package imports
-- interface workflows
-- packaging sanity
+Este projeto inclui testes para:
+- comportamento do motor de backtest
+- geração de sinais das estratégias
+- imports do pacote
+- fluxos da interface
+- sanidade de empacotamento
 
-## Contributing
-FEA.dev members and outside contributors are welcome.
+## Contribuindo
+Membros da FEA.dev e contribuidores externos são bem-vindos.
 
-- Fork the repository
-- Create a descriptive branch
-- Open a pull request with your feature or fix
-- Include tests and update docs when needed
-- Report bugs via issues if behavior differs from expected output
+- Faça um fork do repositório
+- Crie uma branch descritiva
+- Abra um pull request com sua feature ou correção
+- Inclua testes e atualize a documentação quando necessário
+- Reporte bugs via issues se o comportamento diferir do esperado
 
-## License
-This project is licensed under the MIT License.
+## Licença
+Este projeto é licenciado sob a Licença MIT.
 
-See [LICENSE](./LICENSE) for details.
+Veja [LICENSE](./LICENSE) para detalhes.
 
