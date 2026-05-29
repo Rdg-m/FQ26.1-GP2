@@ -555,6 +555,321 @@ def plot_drawdown(
     ax.plot(df_history['date'], drawdowns, color=colors[3], linewidth=1.5)
     
     return ax
+
+def calculate_var(returns: Union[pd.Series, Sequence[float]], confidence_level: float = 0.05) -> float:
+    """
+    Calcula o Value at Risk (VaR) histórico para a série de retornos.
+    Retorna a pior queda esperada para o nível de confiança
+    """
+    ret_series = pd.Series(returns).dropna()
+    if ret_series.empty:
+        return 0.0
+    var = np.percentile(ret_series, confidence_level * 100)
+    return float(var)
+
+def calculate_cvar(returns: Union[pd.Series, Sequence[float]], confidence_level: float = 0.05) -> float:
+    """
+    Calcula o CVar
+    """
+    ret_series = pd.Series(returns).dropna()
+    if ret_series.empty:
+        return 0.0
+    
+    var_threshold = calculate_var(ret_series, confidence_level)
+    piores_retornos = ret_series[ret_series <= var_threshold]
+    if piores_retornos.empty:
+        return float(var_threshold)
+    return float(piores_retornos.mean())
+
+@apply_plot_style(
+    title='Retorno Acumulado (%)',
+    xlabel='Data',
+    ylabel='Retorno (%)',
+    legend=True,
+    theme='dark',
+    figsize=(14.0, 6.0)
+)
+
+def plot_cumulative_returns(
+    price_series: pd.Series, 
+    ax: Optional[plt.Axes] = None, 
+    colors: Optional[Sequence[str]] = None
+) -> plt.Axes:
+    """
+    Plota o retorno acumulado percentual 
+    """
+    retornos_diarios = calculate_discrete_yields(price_series).fillna(0)
+    retorno_acumulado = (1 + retornos_diarios).cumprod() - 1
+    retorno_acumulado_pct = retorno_acumulado * 100.0
+    
+    if colors is None:
+        colors = _normalize_color_palette(None, 4) 
+    ax = ax if ax is not None else plt.gca()
+    
+    ax.plot(
+        retorno_acumulado_pct.index, 
+        retorno_acumulado_pct.values, 
+        color=colors[2], # Verde
+        linewidth=2.0,
+        label='Retorno Acumulado'
+    )
+    
+    ax.fill_between(
+        retorno_acumulado_pct.index, 
+        retorno_acumulado_pct.values, 
+        0, 
+        where=(retorno_acumulado_pct.values >= 0), 
+        color=colors[2], 
+        alpha=0.2
+    )
+    ax.fill_between(
+        retorno_acumulado_pct.index, 
+        retorno_acumulado_pct.values, 
+        0, 
+        where=(retorno_acumulado_pct.values < 0), 
+        color=colors[3], # Vermelho 
+        alpha=0.2
+    )
+    
+    return ax
+
+@apply_plot_style(
+    title='Volatilidade Móvel Anualizada (Risco)',
+    xlabel='Data',
+    ylabel='Volatilidade Anualizada (%)',
+    legend=True,
+    theme='dark',
+    figsize=(14.0, 5.0)
+)
+
+def plot_volatility(
+    price_series: pd.Series, 
+    window: int = 20, 
+    ax: Optional[plt.Axes] = None, 
+    colors: Optional[Sequence[str]] = None
+) -> plt.Axes:
+    """
+    Calcula e plota a volatilidade móvel
+    """
+    retornos_diarios = calculate_discrete_yields(price_series)
+    
+    volatilidade_movel = retornos_diarios.rolling(window=window).std() * np.sqrt(252) * 100.0
+    
+    if colors is None:
+        colors = _normalize_color_palette(None, 5) 
+    ax = ax if ax is not None else plt.gca()
+    
+    ax.plot(
+        volatilidade_movel.index, 
+        volatilidade_movel.values, 
+        color=colors[4],
+        linewidth=1.5,
+        label=f'Volatilidade ({window} dias)'
+    )
+    
+    return ax
+
+@apply_plot_style(
+    title='Análise Técnica: Preço e Bandas de Bollinger',
+    xlabel='Data',
+    ylabel='Preço (R$)',
+    legend=True,
+    theme='dark',
+    figsize=(14.0, 7.0)
+)
+def plot_bollinger_bands_chart(
+    price_series: pd.Series,
+    period: int = 20,
+    ax: Optional[plt.Axes] = None,
+    colors: Optional[Sequence[str]] = None
+) -> plt.Axes:
+    """
+    Desenha o gráfico de preços com as Bandas de Bollinger
+    """
+    middle, upper, lower = calculate_bollinger_bands(price_series, period=period)
+    
+    if colors is None:
+        colors = _normalize_color_palette(None, 4)
+    ax = ax if ax is not None else plt.gca()
+    
+    ax.plot(price_series.index, price_series.values, label='Preço', color='#ffffff', linewidth=1.5)
+    
+    ax.plot(upper.index, upper.values, label='Banda Superior', color=colors[0], linestyle='--', alpha=0.6)
+    ax.plot(lower.index, lower.values, label='Banda Inferior', color=colors[0], linestyle='--', alpha=0.6)
+    ax.plot(middle.index, middle.values, label='Média Móvel', color=colors[1], linestyle=':', alpha=0.8)
+    
+    ax.fill_between(price_series.index, lower.values, upper.values, color=colors[0], alpha=0.1)
+    
+    return ax
+
+@apply_plot_style(
+    title='Índice de Força Relativa (RSI)',
+    xlabel='Data',
+    ylabel='RSI',
+    legend=True,
+    theme='dark',
+    figsize=(14.0, 4.0) # Mais baixinho para ficar embaixo do gráfico de preço
+)
+def plot_rsi_chart(
+    price_series: pd.Series,
+    period: int = 14,
+    ax: Optional[plt.Axes] = None,
+    colors: Optional[Sequence[str]] = None
+) -> plt.Axes:
+    """
+    Desenha o RSI 
+    """
+    rsi = calculate_rsi(price_series, period=period)
+    
+    if colors is None:
+        colors = _normalize_color_palette(None, 5)
+    ax = ax if ax is not None else plt.gca()
+    
+    ax.plot(rsi.index, rsi.values, label=f'RSI ({period})', color=colors[4], linewidth=1.5)
+    
+    ax.axhline(70, color=colors[3], linestyle='--', alpha=0.6, label='Sobrecomprado (70)')
+    ax.axhline(30, color=colors[2], linestyle='--', alpha=0.6, label='Sobrevendido (30)')
+    
+    ax.fill_between(rsi.index, 70, 30, color='#7f7f7f', alpha=0.1)
+    
+    ax.set_ylim(0, 100) 
+    return ax
+
+
+def calculate_sharpe_ratio(returns: pd.Series, risk_free_rate_annual: float = 0.0) -> float:
+    """Calcula o Índice de Sharpe Anualizado com base nos retornos diários."""
+    ret_series = pd.Series(returns).dropna()
+    if ret_series.empty or ret_series.std() == 0:
+        return 0.0
+    
+    rf_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
+    excess_returns = ret_series - rf_daily
+    return float((excess_returns.mean() / excess_returns.std()) * np.sqrt(252))
+
+
+def calculate_sortino_ratio(returns: pd.Series, risk_free_rate_annual: float = 0.0) -> float:
+    """Calcula o Índice de Sortino Anualizado."""
+    ret_series = pd.Series(returns).dropna()
+    if ret_series.empty:
+        return 0.0
+        
+    rf_daily = (1 + risk_free_rate_annual) ** (1/252) - 1
+    excess_returns = ret_series - rf_daily
+    downside_returns = excess_returns[excess_returns < 0]
+    
+    if downside_returns.empty or downside_returns.std() == 0:
+        return 0.0 
+        
+    downside_volatility = downside_returns.std() * np.sqrt(252)
+    annualized_return = excess_returns.mean() * 252
+    return float(annualized_return / downside_volatility)
+
+
+def generate_performance_summary(daily_history: list, closed_positions: list = None) -> pd.DataFrame:
+    """
+    Compila todas as métricas em uma tabela.
+    """
+    df = pd.DataFrame(daily_history)
+    if df.empty or 'portfolio_value' not in df.columns:
+        return pd.DataFrame()
+        
+    capital_inicial = float(df['portfolio_value'].iloc[0])
+    capital_final = float(df['portfolio_value'].iloc[-1])
+    total_dias = len(df)
+    
+    retorno_total = ((capital_final - capital_inicial) / capital_inicial) * 100
+    retornos_diarios = df['portfolio_value'].pct_change().dropna()
+    
+    retorno_anualizado = 0.0
+    vol_anualizada = 0.0
+    var_95 = 0.0
+    cvar_95 = 0.0
+    sharpe = 0.0
+    sortino = 0.0
+    
+    if not retornos_diarios.empty:
+        retorno_anualizado = (((capital_final / capital_inicial) ** (252 / total_dias)) - 1) * 100
+        vol_anualizada = retornos_diarios.std() * np.sqrt(252) * 100
+        var_95 = calculate_var(retornos_diarios) * 100
+        cvar_95 = calculate_cvar(retornos_diarios) * 100
+        sharpe = calculate_sharpe_ratio(retornos_diarios)
+        sortino = calculate_sortino_ratio(retornos_diarios)
+
+    picos = df['portfolio_value'].cummax()
+    drawdowns = (df['portfolio_value'] - picos) / picos * 100
+    max_drawdown = drawdowns.min()
+    avg_drawdown = drawdowns[drawdowns < 0].mean() if (drawdowns < 0).any() else 0.0
+    
+    max_dd_duration = 0
+    current_dd_duration = 0
+    for dd in drawdowns:
+        if dd < 0:
+            current_dd_duration += 1
+            max_dd_duration = max(max_dd_duration, current_dd_duration)
+        else:
+            current_dd_duration = 0
+
+    dias_ganho = int((retornos_diarios > 0).sum())
+    
+    win_streak = current_win = 0
+    loss_streak = current_loss = 0
+    for r in retornos_diarios:
+        if r > 0:
+            current_win += 1
+            win_streak = max(win_streak, current_win)
+            current_loss = 0
+        elif r < 0:
+            current_loss += 1
+            loss_streak = max(loss_streak, current_loss)
+            current_win = 0
+
+    total_trades = 0
+    win_rate = 0.0
+    profit_factor = 0.0
+    lucro_medio = 0.0
+    risk_reward_ratio = 0.0
+    
+    if closed_positions and len(closed_positions) > 0:
+        df_trades = pd.DataFrame(closed_positions)
+        total_trades = len(df_trades)
+        
+        if 'profit' in df_trades.columns:
+            trades_vencedores = df_trades[df_trades['profit'] > 0]
+            trades_perdedores = df_trades[df_trades['profit'] < 0]
+            
+            win_rate = (len(trades_vencedores) / total_trades) * 100 if total_trades > 0 else 0.0
+            lucro_medio = df_trades['profit'].mean()
+            
+            lucro_bruto = trades_vencedores['profit'].sum()
+            prejuizo_bruto = abs(trades_perdedores['profit'].sum())
+            profit_factor = (lucro_bruto / prejuizo_bruto) if prejuizo_bruto > 0 else float('inf')
+            
+            avg_gain = trades_vencedores['profit'].mean() if len(trades_vencedores) > 0 else 0.0
+            avg_loss = abs(trades_perdedores['profit'].mean()) if len(trades_perdedores) > 0 else 0.0
+            risk_reward_ratio = (avg_gain / avg_loss) if avg_loss > 0 else float('inf')
+
+    metrics_manifest = {
+        'Métrica': [
+            'Capital Inicial', 'Capital Final', 'Retorno Total (%)', 'Retorno Anualizado (%)',
+            'Volatilidade Anualizada (%)', 'Índice de Sharpe', 'Índice de Sortino',
+            'Drawdown Máximo (%)', 'Drawdown Médio (%)', 'Duração Máxima do Drawdown (Dias)',
+            'Total de Trades Executados', 'Taxa de Ganho (Win Rate)', 'Fator de Lucro (Profit Factor)',
+            'Lucro Médio por Trade (R$)', 'Razão Média Ganho/Perda (Risk/Reward)',
+            'Dias Úteis Positivos', 'Maior Sequência de Ganhos (Win Streak)', 'Maior Sequência de Perdas (Loss Streak)',
+            'VaR Histórico 95% Diário (%)', 'CVaR Histórico 95% Diário (%)'
+        ],
+        'Valor': [
+            f"R$ {capital_inicial:,.2f}", f"R$ {capital_final:,.2f}", f"{retorno_total:.2f}%", f"{retorno_anualizado:.2f}%",
+            f"{vol_anualizada:.2f}%", f"{sharpe:.2f}", f"{sortino:.2f}",
+            f"{max_drawdown:.2f}%", f"{avg_drawdown:.2f}%", f"{max_dd_duration} dias",
+            f"{total_trades}", f"{win_rate:.1f}%", f"{profit_factor:.2f}",
+            f"R$ {lucro_medio:,.2f}", f"{risk_reward_ratio:.2f}",
+            f"{dias_ganho} de {len(retornos_diarios)} dias", f"{win_streak} dias", f"{loss_streak} dias",
+            f"{var_95:.2f}%", f"{cvar_95:.2f}%"
+        ]
+    }
+    
+    return pd.DataFrame(metrics_manifest).set_index('Métrica')
 if __name__ == '__main__':
    # teste de sanidade
     series = generate_sample_time_series(length=30)
