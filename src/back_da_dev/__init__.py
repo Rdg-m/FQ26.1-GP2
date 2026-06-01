@@ -28,4 +28,4 @@ __all__ = [
     "save_backtest_log",
     "clean_data",
 ]
-__version__ = "0.0.1"
+__version__ = "0.0.2"
