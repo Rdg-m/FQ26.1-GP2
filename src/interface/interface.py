@@ -1,18 +1,3 @@
-"""back_da_dev interface hub.
-
-Este módulo oferece um ponto de entrada de alto nível para o uso como
-biblioteca. Ele roteia carregamento, limpeza, criação de engine, execução de
-backtest e geração de relatórios gráficos / .log.
-
-A API principal foi pensada para que um ou dois imports sejam suficientes:
-
-from back_da_dev import run_standard_backtest
-
-ou
-
-from back_da_dev import generate_backtest_report
-"""
-
 from __future__ import annotations
 
 import argparse
