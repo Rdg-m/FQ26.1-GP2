@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from src.graphing.graphing import (
+from graphing.graphing import (
     plot_equity_curve, 
     plot_drawdown,
     plot_cumulative_returns,

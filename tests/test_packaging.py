@@ -63,7 +63,7 @@ def test_build_package_wheel(tmp_path):
         "-c",
         "import back_da_dev; print(back_da_dev.__version__)",
     ], env=env)
-    assert "0.0.1" in result.stdout.strip()
+    assert "0.0.2" in result.stdout.strip()
 
     result = run_command([
         sys.executable,
@@ -86,4 +86,4 @@ def test_import_package_from_src_layout():
         ],
         env=env,
     )
-    assert "0.0.1" in result.stdout.strip()
+    assert "0.0.2" in result.stdout.strip()
