@@ -2,147 +2,107 @@
 
 ## 1. Overview
 
-`Back-da-dev` is a Python library for rapid quantitative backtesting and strategy prototyping. The project was developed as a student lab for the FEA.dev community and is intended to help learners and curious investors:
+Back-da-dev is a student-driven Python library for rapid financial backtesting and prototype strategy research. It combines data ingestion, cleaning, strategy execution, reporting, and plotting into a small experimental package intended for academic exploration and quick iteration.
 
-- load historical market data,
-- clean and normalize time-series data,
-- execute trading strategy simulations,
-- generate results and simple reports,
-- explore strategy behavior with built-in models.
+The repository is organized as a package with the top-level package name `Back_da_dev` and a source layout under `src/`. It is meant to be used both as a library and as a CLI module.
 
-This repository is structured as a library package, with a public interface module at `src/back_da_dev` and implementation details split across `backtesting`, `dataprocessing`, `graphing`, and `interface` modules.
+### 1.1 Goals
 
-## 2. Current Status
+- Provide a simple, reusable workflow for financial backtesting
+- Support loading historical prices from local files and `yfinance`
+- Allow plug-in strategy objects that generate buy/sell signals
+- Simulate execution with commission and portfolio tracking
+- Export graphs and textual logs for backtest results
+- Document the project with a deep architecture reference
 
-The project currently includes:
+### 1.2 Current status
 
-- a public package entrypoint under `src/back_da_dev/__init__.py`
-- a backtesting execution engine in `src/backtesting/backtesting_main.py`
-- built-in strategy models in `src/backtesting/modelos_pre_implementados.py`
-- data loading from local files and `yfinance` in `src/dataprocessing/load.py`
-- data cleaning and validation in `src/dataprocessing/clean.py`
-- graph generation helpers in `src/graphing/graphing.py`
-- a high-level interface hub in `src/interface/interface.py`
-- a minimal CLI entrypoint in `src/back_da_dev/__main__.py`
+- Core backtesting engine implemented in `src/backtesting/backtesting_main.py`
+- Data loading in `src/dataprocessing/load.py`
+- Data cleaning in `src/dataprocessing/clean.py`
+- Strategy prototypes in `src/backtesting/modelos_pre_implementados.py`
+- Strategy utility functions in `src/backtesting/estrategy.py`
+- Graphing utilities in `src/graphing/graphing.py`
+- Public integration hub in `src/interface/interface.py`
+- Package entrypoint in `src/back_da_dev/__init__.py`
 
-The repository is installable via `python -m pip install -e .` and targets Python `>=3.11`.
+## 2. Package Metadata
 
-## 3. Packaging and Metadata
+The project package is configured in `pyproject.toml` with:
 
-### Package name
-
-- PyPI-style package name: `Back_da_dev`
-
-### Project metadata
-
-- `name = "Back_da_dev"`
-- `version = "0.0.1"`
-- `requires-python = ">=3.11"`
-- dependencies:
+- name: `Back_da_dev`
+- version: `0.0.1`
+- Python requirement: `>=3.11`
+- Dependencies:
   - `matplotlib`
   - `numpy`
   - `pandas`
   - `requests`
   - `yfinance`
+- Source layout: `src/`
 
-### Package layout
+### 2.1 Installation
 
-- package source root: `src`
-- package discovery: `src` directory
-- package entrypoints: `back_da_dev`, `backtesting`, `dataprocessing`, `graphing`, `interface`
+```bash
+python -m pip install -e .
+```
 
-## 4. Repository Structure
+For an isolated environment:
 
-### Top-level files
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e .
+```
 
-- `README.md` — concise project summary and usage examples
-- `pyproject.toml` — packaging metadata and dependencies
-- `requirements.txt` — dependency list for development/installation
-- `fluxogram.md` — architecture notes and implementation roadmap
-- `tests/` — unit tests for engine, strategies, interface and packaging
+## 3. Architecture and Package Layout
 
-### Source packages
+The package is structured into the following logical layers:
 
-- `src/back_da_dev/` — public package exports
-- `src/backtesting/` — engine and strategy models
-- `src/dataprocessing/` — data loading and cleaning utilities
-- `src/graphing/` — plotting utilities
-- `src/interface/` — high-level orchestration hub
+- `src/back_da_dev/`: public package exports and CLI entrypoint
+- `src/interface/`: high-level integration hub that wires load/clean/backtest/report
+- `src/backtesting/`: backtest engine, built-in strategies, and strategy helpers
+- `src/dataprocessing/`: data loading and cleaning utilities
+- `src/graphing/`: plotting and visualization helpers
 
-### Data
+### 3.1 Root package exports
 
-- `data/` — historical data files for B3 and S&P 500 examples
-- `data/historical_data/B3/` — raw text series from B3
-- `data/historical_data/S&P500/` — sample CSV files
-
-## 5. Public API
-
-The public API exported by `back_da_dev` includes:
+`src/back_da_dev/__init__.py` exports the public API:
 
 - `BacktestEngine`
 - `BacktestResult`
-- `load_data`
-- `clean_data`
+- `export_backtest_graphs`
+- `generate_backtest_report`
+- `list_strategies`
 - `load_and_clean`
+- `load_data`
+- `main`
 - `resolve_strategy`
 - `run_standard_backtest`
-- `generate_backtest_report`
 - `save_backtest_log`
-- `export_backtest_graphs`
-- `list_strategies`
-- `main`
+- `clean_data`
 
-### Example import
+This file intentionally exposes the main workflow functions so users can import from `back_da_dev` after installation.
 
-```python
-from back_da_dev import (
-    BacktestEngine,
-    load_and_clean,
-    load_data,
-    clean_data,
-    resolve_strategy,
-    run_standard_backtest,
-    generate_backtest_report,
-    list_strategies,
-)
-```
+## 4. Data Pipeline
 
-## 6. High-Level Workflow
+The library handles data in three stages:
 
-The intended execution flow is:
+1. Load raw historical data (`load_data`)
+2. Clean and normalize it (`clean_data`)
+3. Execute a backtest on the prepared data
 
-1. load historical data via `load_data()` or `load_and_clean()`.
-2. clean the raw data via `clean_data()`.
-3. build a backtest engine with `BacktestEngine(...)`.
-4. resolve a trading strategy with `resolve_strategy(...)`.
-5. execute the strategy with `engine.run(strategy_instance)`.
-6. compute metrics and persist reports with `generate_backtest_report(...)`.
+### 4.1 Data loading
 
-The `interface` module exposes this flow through functions such as `run_standard_backtest()` and `generate_backtest_report()`.
+Implemented in `src/dataprocessing/load.py`.
 
-## 7. Data Loading
+Supported sources:
 
-### `src/dataprocessing/load.py`
+- Local files: `csv`, `json`, `xlsx`
+- `yfinance` using an index/symbol and time range
+- Banco Central do Brasil via optional `bcb` package when `fonte='bcb'`
 
-`load_data()` supports two main modes:
-
-- local file loading using `caminho` and `formato`
-- API loading from `yfinance` using `indice`, `fonte`, `tempo`, `comeco`, and `fim`
-
-Supported local formats:
-
-- `csv`
-- `json`
-- `xlsx`
-
-Supported data source names:
-
-- `yfinance` (default)
-- `bcb` (optional, requires the `bcb` dependency installed separately)
-
-### Expected columns
-
-The loader validates that the returned DataFrame contains:
+Expected columns after load:
 
 - `Open`
 - `High`
@@ -150,309 +110,264 @@ The loader validates that the returned DataFrame contains:
 - `Close`
 - `Volume`
 
-If any of those columns are missing, `load_data()` raises `KeyError`.
+The loader also supports saving downloaded data to a local `dados/` directory when `salvar=True`.
 
-### Example
+### 4.2 Data cleaning
 
-```python
-from dataprocessing.load import load_data
+Implemented in `src/dataprocessing/clean.py`.
 
-raw_df = load_data(indice='PETR4.SA', fonte='yfinance', tempo='5y')
-```
+The cleaning function:
 
-## 8. Data Cleaning
+- converts the index to `datetime`
+- coerces OHLC columns to numeric values
+- fills missing values using `ffill`, `bfill`, `interpolate`, or drops them
+- removes duplicate timestamps
+- sorts data by index
+- drops obvious inconsistencies such as `High < Low` or negative prices
+- optionally removes outliers from percentage returns using a z-score threshold
 
-### `src/dataprocessing/clean.py`
-
-`clean_data()` performs the following operations:
-
-- converts the index to `datetime` if needed
-- casts OHLC columns to numeric values
-- fills missing `Volume` values with zero
-- removes index duplicates
-- sorts by index
-- imputes or drops missing values using `ffill`, `bfill`, `interpolate`, or `drop`
-- removes inconsistent rows where `High < Low` or negative prices are present
-- optionally removes outliers using a z-score filter on `Close` returns
-
-### Example
+Function signature:
 
 ```python
-from dataprocessing.clean import clean_data
-
-clean_df = clean_data(raw_df, handle_missing='ffill', remove_outliers=True)
+clean_data(df, handle_missing='ffill', remove_outliers=False, verbose=True)
 ```
 
-## 9. Strategies
+The current implementation returns a tuple `(df_limpo, df_report)` containing the cleaned DataFrame and a report DataFrame summarizing the cleaning operation.
 
-### Base strategy class: `estrat`
+## 5. Backtesting Engine
 
-Defined in `src/backtesting/modelos_pre_implementados.py`, `estrat` is the base class for all built-in strategies. It provides:
+The main engine is in `src/backtesting/backtesting_main.py`.
 
-- memory storage for symbol prices
-- a helper for generating standardized signals
-- a `generate_signals(ohlcv)` method that adapts DataFrame or list inputs
-- a required `com(assets)` method to be implemented by subclasses
+### 5.1 BacktestEngine responsibilities
 
-### Built-in strategies
+`BacktestEngine` manages:
 
-#### `buy_and_hold`
+- input historical data
+- portfolio state and cash
+- commission costs
+- open and closed positions
+- daily portfolio history
+- execution logic for buy and sell signals
+- support for two modes:
+  - real historical data mode (`dado_real=True`)
+  - geometric Brownian motion simulation mode (`dado_real=False`)
 
-- buys each asset once on the first data point
-- splits available capital equally among assets
-- does not sell again
+### 5.2 Engine internals
 
-#### `MA`
+Key engine attributes:
 
-- uses two simple moving averages
-- buys when the fast SMA crosses above the slow SMA
-- sells when the fast SMA crosses below the slow SMA
-- stores the last decision for crossover detection
+- `data`: input DataFrame
+- `symbols`: list of symbols under test
+- `commission`: trading commission rate
+- `initial_capital`: starting cash
+- `cash`: available cash during simulation
+- `portfolio_value`: current total value of cash plus open positions
+- `_configs`: engine configuration map
+- `open_positions`: open position dictionary
+- `closed_positions`: list of closed trade dictionaries
+- `daily_history`: list of daily portfolio snapshots
 
-#### `EMA`
+### 5.3 Execution flow
 
-- inherits the MA strategy
-- computes exponential moving averages instead of simple moving averages
+`BacktestEngine.run(strategy_instance)` chooses one of two routines:
 
-### Strategy signal format
+- `_run_normal(strategy_instance)` when `_configs['dado_real']` is `True`
+- `_run_brown(strategy_instance)` when `_configs['dado_real']` is `False`
 
-Strategies return signals in the form:
+Both flows use `_fluxo_padrao(ohlcv, strategy_instance)` to:
+
+- generate signals from the strategy
+- process each signal with `_processar_sinal`
+- apply forced sales via `_verificar_stop_take`
+- update portfolio value with `_atualizar_valor_protifolio`
+
+### 5.4 Signal execution
+
+The strategy interface expects signals in this structure:
 
 ```python
 {
-    'symbol': 'PETR4',
-    'signal_type': 'BUY' or 'SELL',
-    'price': 25.50,
-    'quantity': 100,
-    'reason': 'text description',
+    'symbol': str,
+    'signal_type': 'BUY' | 'SELL',
+    'price': float,
+    'quantity': int,
+    'reason': str,
 }
 ```
 
-## 10. Backtest Engine
+The engine handles buys and sells with `_execute_buy` and `_execute_sell`, taking commission into account.
 
-### `src/backtesting/backtesting_main.py`
+### 5.5 Brownian mode
 
-`BacktestEngine` is the core execution engine.
+When `dado_real` is `False`, the engine generates synthetic prices by calling `MBG` from `src/dataprocessing/mov_brow.py` and then builds OHLCV-like rows for each period.
 
-#### Constructor
+## 6. Strategies and Signals
 
-```python
-BacktestEngine(data, symbols, initial_capital=10000.0, commission=0.001)
-```
+Strategy prototypes are defined in `src/backtesting/modelos_pre_implementados.py` and utility functions are in `src/backtesting/estrategy.py`.
 
-Key fields:
+### 6.1 Strategy prototypes
 
-- `data`: historical OHLCV data
-- `symbols`: list of symbols to simulate
-- `initial_capital`: starting cash
-- `commission`: per-trade commission factor
-- `cash`: current available cash
-- `portfolio_value`: current cash plus open position value
-- `_configs`: engine configuration dictionary
-- `open_positions`: currently held positions
-- `closed_positions`: list of closed trades
-- `daily_history`: daily portfolio snapshots
+Built-in strategy classes:
 
-#### Execution modes
+- `buy_and_hold`
+- `MA`
+- `EMA`
 
-The engine supports two modes controlled by `_configs['dado_real']`:
+All strategies derive from the base class `estrat`, which provides:
 
-- real data mode (`True`) — iterates over the provided `data` index and runs `_run_normal()`
-- synthetic Brownian mode (`False`) — generates synthetic OHLCV with `_run_brown()`
+- `generate_signals(ohlcv)` adapter
+- `_generate_signal(...)` helper
+- memory storage for historic prices
 
-#### Normal mode
+The base class also defines the abstract method `com(assets)` for signal generation.
 
-`_run_normal()` processes the loaded data by unique dates. For each date it:
+### 6.2 Strategy behavior
 
-- slices `ohlcv` for that date
-- calls `_fluxo_padrao(ohlcv, strategy_instance)`
+- `buy_and_hold` buys all assets once and then holds them.
+- `MA` generates long/short signals based on fast/slow moving average crossover with simple moving averages.
+- `EMA` inherits `MA` and calculates exponential moving averages instead of simple moving averages.
 
-#### Brownian mode
+### 6.3 Strategy utilities
 
-`_run_brown()` generates synthetic price series using `MBG` from `src/dataprocessing/mov_brow.py` and then runs the normal strategy flow on the generated OHLCV.
+`src/backtesting/estrategy.py` contains indicator functions and helper calculations such as:
 
-#### Signal processing
+- `adx`
+- `sma`
+- `ema`
+- `macd`
+- `rsi`
+- `stochastic`
+- `roc`
+- `momentum`
+- `bollinger_bands`
+- `atr`
+- `obv`
+- `volume_roc`
+- `mfi`
 
-`_fluxo_padrao()`:
+### 6.4 Public strategy alias
 
-- asks the strategy for signals with `generate_signals(ohlcv)`
-- executes buy/sell signals with `_execute_buy()` and `_execute_sell()`
-- checks stop-loss and take-profit rules with `_verificar_stop_take()`
-- updates portfolio value and appends `daily_history`
+A user-friendly alias module was added at `src/backtesting/strategy.py` that re-exports the most important utilities from `estrategy.py`.
 
-#### Buying logic
+## 7. Integration Hub
 
-`_execute_buy()`:
+The high-level interface is implemented in `src/interface/interface.py`.
 
-- calculates total cost including commission
-- rejects impossible buys unless `_configs['over_spend'] == True`
-- supports aggregation of buys into existing open positions
-- updates `cash` and `open_positions`
+### 7.1 Public workflow functions
 
-#### Selling logic
+- `list_strategies()` — list available built-in strategies
+- `resolve_strategy(strategy, initial_capital, **strategy_kwargs)` — create a strategy instance from a name, class, or instance
+- `load_and_clean(...)` — load data and then clean it
+- `build_backtest_engine(...)` — instantiate `BacktestEngine` and apply configuration
+- `compute_backtest_metrics(engine)` — compute return, drawdown, trade counts, and annualized return
+- `save_backtest_log(engine, metrics, path)` — write a `.log` summary file
+- `export_backtest_graphs(engine, output_dir, prefix)` — save equity and drawdown PNGs
+- `generate_backtest_report(engine, output_dir, prefix, save_graphs, save_log)` — produce a full report
+- `run_standard_backtest(...)` — full end-to-end backtest workflow
 
-`_execute_sell()`:
+### 7.2 Backtest result object
 
-- sells up to the requested quantity
-- updates cash after commission
-- records closed trades in `closed_positions`
-- decrements open position quantity and deletes it when fully closed
+`BacktestResult` contains:
 
-### Portfolio and history
+- `engine`: the running `BacktestEngine`
+- `metrics`: computed performance metrics
+- `graph_paths`: saved chart paths
+- `log_path`: optional saved log path
 
-The engine stores daily snapshots in `daily_history` with:
+### 7.3 Metrics computed today
 
-- `date`
-- `cash`
-- `portfolio_value`
+The interface currently computes:
 
-This history is used by the interface to compute drawdown and generate graphs.
+- `initial_capital`
+- `final_cash`
+- `final_equity`
+- `net_return`
+- `total_trades`
+- `return_pct`
+- `winning_trades`
+- `losing_trades`
+- `win_rate`
+- `total_profit`
+- `max_drawdown_pct`
+- `duration_days`
+- `annualized_return_pct`
 
-## 11. Interface Hub
+## 8. Graphing and Reporting
 
-### `src/interface/interface.py`
+`src/graphing/graphing.py` provides plotting utilities and chart style helpers.
 
-This module provides the high-level orchestration functions used by the library API and CLI.
+Key features:
 
-Key responsibilities:
+- theming support (`dark`, `light`, `seaborn`)
+- styled plot decorators
+- technical indicator functions for RSI, MACD, Bollinger Bands
+- `plot_time_series`
+- `plot_equity_curve`
+- `plot_drawdown`
 
-- resolve strategy names to strategy instances
-- combine data loading and cleaning in `load_and_clean()`
-- build a configured engine in `build_backtest_engine()`
-- compute summary metrics in `compute_backtest_metrics()`
-- save log files and graphs
-- expose `run_standard_backtest()` for a turnkey workflow
+The interface uses these functions to export PNG charts for equity and drawdown.
 
-### `run_standard_backtest()`
+## 9. CLI
 
-This function performs:
+The package supports a minimal CLI through `src/back_da_dev/__main__.py`, which delegates to `interface.main()`.
 
-1. optional loading and cleaning of data
-2. engine construction
-3. strategy resolution
-4. engine execution
-5. metrics computation
-6. graph and log export
+CLI options include:
 
-### Metrics available
+- `--indice` — ticker symbol for `yfinance`
+- `--symbols` — explicit symbol list for the backtest
+- `--strategy` — built-in strategy name (`buy_and_hold`, `ma`, `ema`)
+- `--initial-capital`
+- `--commission`
+- `--output-dir`
+- `--no-graphs`
+- `--no-log`
+- `--tempo`
+- `--fonte`
+- `--caminho`
+- `--formato`
 
-The interface computes:
-
-- initial capital
-- final cash
-- final equity
-- net return
-- return percentage
-- number of trades closed
-- win rate
-- total profit
-- maximum drawdown percentage
-- duration in days
-- annualized return percentage
-
-`compute_backtest_metrics()` derives drawdown and annualized return from `engine.daily_history`.
-
-## 12. Graphing
-
-### `src/graphing/graphing.py`
-
-Graph utilities include:
-
-- `plot_time_series()` — general price/time plotting
-- `plot_equity_curve()` — portfolio equity over time
-- `plot_drawdown()` — drawdown visualization
-
-The module also exposes technical indicator helpers:
-
-- `calculate_rsi()`
-- `calculate_macd()`
-- `calculate_bollinger_bands()`
-- `calculate_discrete_yields()`
-- `discrete_to_continuous()`
-
-Graphs are styled through a theme helper and use Matplotlib.
-
-### Graph export
-
-`export_backtest_graphs()` in the interface saves:
-
-- `backtest_equity_curve.png`
-- `backtest_drawdown.png`
-
-These files are written to the selected output directory.
-
-## 13. CLI Usage
-
-The executable CLI entrypoint is `src/back_da_dev/__main__.py`, which simply calls `main()` from `src/interface/interface.py`.
-
-### Example
+The CLI is invoked by:
 
 ```bash
 python -m back_da_dev --indice PETR4.SA --strategy ma --initial-capital 10000 --output-dir ./results
 ```
 
-### CLI options
+## 10. Usage Examples
 
-- `--indice` — ticker to load via `yfinance`
-- `--symbols` — explicit symbols list for the backtest
-- `--strategy` — `buy_and_hold`, `ma`, or `ema`
-- `--initial-capital` — starting cash
-- `--commission` — commission rate
-- `--output-dir` — output path for graphs/logs
-- `--no-graphs` — disable graph export
-- `--no-log` — disable log export
-- `--tempo` — yfinance period
-- `--fonte` — data source name
-- `--caminho` — local file path
-- `--formato` — local file format
-
-## 14. Example End-to-End Backtest
+### 10.1 Library example
 
 ```python
-from back_da_dev import load_and_clean, run_standard_backtest, list_strategies
+from back_da_dev import run_standard_backtest, load_and_clean, list_strategies
 
-raw_df = load_and_clean(indice='PETR4.SA', fonte='yfinance', tempo='5y')
+raw_df = load_and_clean(indice="PETR4.SA", fonte="yfinance", tempo="5y")
 
 result = run_standard_backtest(
     data=raw_df,
-    strategy='buy_and_hold',
+    strategy="buy_and_hold",
     initial_capital=10000.0,
     commission=0.001,
-    save_graphs=True,
-    save_log=True,
-    output_dir='./results',
+    save_graphs=False,
+    save_log=False,
 )
 
 print(result.metrics)
-print(result.graph_paths)
-print(result.log_path)
 ```
 
-## 15. Limitations and Known Gaps
+### 10.2 Report generation
 
-This project is a working prototype and currently has some limitations:
+```python
+from back_da_dev import generate_backtest_report
 
-- engine metrics are computed in the interface layer, not inside `BacktestEngine`
-- the backtest engine currently supports only simple stop-loss/take-profit logic and no risk position sizing beyond quantity calculation
-- data loading is limited to `csv`, `json`, `xlsx`, `yfinance`, and optional `bcb`
-- synthetic Brownian mode is available, but only in the engine's fictitious simulation path
-- graph export is limited to equity curve and drawdown charts
-- `clean_data()` does not return an explicit report object, only a cleaned DataFrame
-- `load_and_clean()` forces `symbol` column injection only when `indice` is provided
+report = generate_backtest_report(
+    engine=result.engine,
+    output_dir="./results",
+    prefix="feadev_backtest",
+)
+print(report.graph_paths)
+print(report.log_path)
+```
 
-## 16. Roadmap and Future Improvements
-
-Potential next steps for the project include:
-
-- add richer metrics inside `BacktestEngine` (Sharpe, Sortino, profit factor)
-- improve multi-asset support and full portfolio allocation rules
-- add instrument-level trade logging and CSV/JSON exports
-- expand graphing to trade overlays and distribution charts
-- add more strategy templates and an extensible strategy registry
-- add stronger validation and error handling in `load_data()` and `clean_data()`
-- document the package API with generated reference docs
-
-## 17. Tests
+## 11. Tests
 
 Run the test suite with:
 
@@ -460,23 +375,56 @@ Run the test suite with:
 pytest -q
 ```
 
-The repository includes tests for:
+Current tests cover:
 
-- engine behavior
-- strategy generation
-- package imports
-- interface workflows
+- import and package loading
+- backtest engine behavior
+- strategy execution
+- interface flow
 - packaging sanity
 
-## 18. Reference Notes
+## 12. Known limitations
 
-- `src/back_da_dev/__init__.py` defines the package public API
-- `src/interface/interface.py` is the recommended integration layer for library users
-- `src/backtesting/modelos_pre_implementados.py` defines strategies and signal semantics
-- `src/backtesting/backtesting_main.py` contains engine state and execution loops
-- `src/dataprocessing/load.py` and `src/dataprocessing/clean.py` manage input data
-- `src/graphing/graphing.py` provides visual output helpers
+The project is a prototype and currently has several limitations:
 
----
+- The interface workflow assumes `clean_data()` returns a DataFrame, but the implementation currently returns `(df_limpo, df_report)`.
+- Strategy coverage is limited to a small set of built-in prototypes.
+- `BacktestEngine` metrics do not yet include Sharpe, Sortino, or profit factor.
+- The CLI is minimal and does not expose all internal configuration options.
+- Data validation is basic; advanced handling of splits, dividends, and multi-asset data is not yet implemented.
+- Graphing exports are limited to equity and drawdown charts.
 
-This document is intended as a deep reference for developers working on `Back-da-dev` and should be updated as the project evolves.
+## 13. Roadmap
+
+Recommended next improvements:
+
+- complete the integration flow between loader, cleaner, engine, and interface
+- add full trade-level and portfolio-level metrics
+- expand strategy library and plugin support
+- add CSV/JSON export of results and trade history
+- improve CLI coverage and output customization
+- add tests for `load.py`, `clean.py`, `graphing.py`, and reporting output
+- add documentation for package installation and contribution guidelines
+
+## 14. Appendix: public API summary
+
+### Public classes
+
+- `back_da_dev.BacktestEngine`
+- `back_da_dev.BacktestResult`
+
+### Public functions
+
+- `back_da_dev.list_strategies`
+- `back_da_dev.resolve_strategy`
+- `back_da_dev.load_and_clean`
+- `back_da_dev.build_backtest_engine`
+- `back_da_dev.compute_backtest_metrics`
+- `back_da_dev.generate_backtest_report`
+- `back_da_dev.export_backtest_graphs`
+- `back_da_dev.save_backtest_log`
+- `back_da_dev.run_standard_backtest`
+- `back_da_dev.clean_data`
+- `back_da_dev.load_data`
+- `back_da_dev.main`
+- `backtesting.estrategy`
