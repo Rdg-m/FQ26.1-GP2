@@ -198,7 +198,8 @@ NOTAS:
 - Todos os cálculos devem ser determinísticos
 - Deve ser testável e auditável
 """
-
+import pandas as pd
+import numpy as np
 #INDICADORES DE TENDÊNCIA
 
 def adx(high, low, close, period=14):
@@ -274,7 +275,7 @@ def macd(
     
     return pd.DataFrame({
         'macd': macd_line,
-        'signal': signal_line
+        'signal': signal_line,
         'histogram': histogram
     })
 
