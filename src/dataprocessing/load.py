@@ -151,7 +151,7 @@ def load_data(caminho=None, formato='csv', indice=None, fonte="yfinance", tempo=
         df = df[colunas_esperadas]
 
         if salvar:
-            pasta_dados = '../dados'
+            pasta_dados = os.path.join(os.getcwd(), 'dados')
             if not os.path.exists(pasta_dados):
                 os.makedirs(pasta_dados)
                 
