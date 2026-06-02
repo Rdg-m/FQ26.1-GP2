@@ -350,15 +350,6 @@ def bollinger_bands(close, period=20, std_mult=2):
         'lower': lower
     })
 
-def atr(high, low, close, period=14):
-
-    tr1 = high - low
-    tr2 = (high - close.shift()).abs()
-    tr3 = (low - close.shift()).abs()
-
-    tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
-
-    return tr.rolling(period).mean()
 
 def atr(high, low, close, period=14):
 
