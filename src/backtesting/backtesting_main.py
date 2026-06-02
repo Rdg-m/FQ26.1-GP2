@@ -221,7 +221,7 @@ DEPENDENCIES:
 - matplotlib/plotly: Visualização
 - load.py: Carregamento de dados
 - clean.py: Limpeza de dados
-- estrategy.py: Sinais de negociação
+- strategy.py / estrategy.py: Sinais de negociação
 - graphing.py: Gráficos de resultados
 
 CONFIGURAÇÕES CUSTOMIZÁVEIS:
