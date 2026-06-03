@@ -371,6 +371,12 @@ The CLI is invoked by:
 python -m back_da_dev --indice PETR4.SA --strategy ma --initial-capital 10000 --output-dir ./results
 ```
 
+Use `python3 -m pip install -e .` to install the package and run the CLI, or run directly from source:
+
+```bash
+PYTHONPATH=src python3 -m back_da_dev --indice PETR4.SA --strategy ma --initial-capital 10000 --output-dir ./results
+```
+
 ## 10. Usage Examples
 
 ### 10.1 Library example
@@ -378,13 +384,11 @@ python -m back_da_dev --indice PETR4.SA --strategy ma --initial-capital 10000 --
 ```python
 from back_da_dev import run_standard_backtest, load_and_clean, list_strategies
 
-raw_df = load_and_clean(indice="PETR4.SA", fonte="yfinance", tempo="5y")
-
 result = run_standard_backtest(
-    data=raw_df,
     strategy="buy_and_hold",
     initial_capital=10000.0,
     commission=0.001,
+    load_kwargs={"indice": "PETR4.SA", "fonte": "yfinance", "tempo": "5y"},
     save_graphs=False,
     save_log=False,
 )

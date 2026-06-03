@@ -4,7 +4,7 @@ Propósito: orientar agentes de IA (Copilot/JIT helpers) para trabalhar eficazme
 
 Resumo curto
 - Projeto: `Back-da-dev` (pacote público `back_da_dev`).
-- Objetivo do agente: executar mudanças pequenas e seguras, rodar testes, preparar patches e propor PRs concisos.
+- Objetivo do agente: executar mudanças pequenas e seguras, rodar testes e preparar patches.
 
 Comandos rápidos (recomendado para agentes e humanos)
 
@@ -22,6 +22,8 @@ pytest -q
 
 # executar CLI (ajuda)
 python -m back_da_dev --help
+# ou rodar direto do código-fonte sem instalar:
+PYTHONPATH=src python3 -m back_da_dev --help
 ```
 
 O que o agente deve fazer antes de propor mudanças

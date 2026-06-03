@@ -71,17 +71,47 @@ Este projeto não requer variáveis de ambiente especiais por padrão.
 Importe o ponto de entrada público do pacote:
 
 ```python
+# Example (requires data source or internet for `yfinance`):
 from back_da_dev import run_standard_backtest, load_and_clean, list_strategies
 
-raw_df = load_and_clean(indice="PETR4.SA", fonte="yfinance", tempo="5y")
+result = run_standard_backtest(
+  strategy="buy_and_hold",
+  initial_capital=10000.0,
+  commission=0.001,
+  load_kwargs={"indice": "PETR4.SA", "fonte": "yfinance", "tempo": "5y"},
+  save_graphs=False,
+  save_log=False,
+)
+
+print(result.metrics)
+```
+
+```python
+# Runnable example (no internet). Creates a tiny sample DataFrame and runs a backtest.
+import pandas as pd
+from back_da_dev import run_standard_backtest, list_strategies
+
+dates = pd.to_datetime(["2025-01-01", "2025-01-02", "2025-01-03"])
+df = pd.DataFrame(
+  {
+    "symbol": ["A", "A", "A"],
+    "open": [100.0, 101.0, 102.0],
+    "high": [101.0, 102.0, 103.0],
+    "low": [99.5, 100.5, 101.5],
+    "close": [101.0, 102.0, 103.0],
+    "volume": [1000, 1200, 1100],
+  },
+  index=dates,
+)
 
 result = run_standard_backtest(
-    data=raw_df,
-    strategy="buy_and_hold",
-    initial_capital=10000.0,
-    commission=0.001,
-    save_graphs=False,
-    save_log=False,
+  data=df,
+  symbols=["A"],
+  strategy="buy_and_hold",
+  initial_capital=1000.0,
+  commission=0.0,
+  save_graphs=False,
+  save_log=False,
 )
 
 print(result.metrics)
@@ -117,12 +147,6 @@ report = generate_backtest_report(
   charts=['equity_curve','rsi','bollinger'],
   formats=('png','svg'),
 )
-```
-
-Example (CLI):
-
-```bash
-python -m back_da_dev --indice PETR4.SA --strategy ma --output-dir ./results --charts equity_curve rsi bollinger --chart-formats png svg
 ```
 
 ### CLI

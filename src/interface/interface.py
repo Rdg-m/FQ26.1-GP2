@@ -91,12 +91,15 @@ def load_and_clean(
     comeco: Optional[str] = None,
     fim: Optional[str] = None,
     salvar: bool = False,
+    de_yfinance: bool = False,
     handle_missing: str = "ffill",
     remove_outliers: bool = False,
     verbose: bool = True,
     clean_kwargs: Optional[Dict[str, Any]] = None,
 ) -> pd.DataFrame:
     """Carrega e limpa dados em um único fluxo."""
+    if fonte == "yfinance": de_yfinance = True
+
     df = load_data(
         caminho=caminho,
         formato=formato,
@@ -106,6 +109,7 @@ def load_and_clean(
         comeco=comeco,
         fim=fim,
         salvar=salvar,
+        de_yfinance=de_yfinance,
     )
 
     if 'symbol' not in df.columns and indice is not None:
@@ -454,6 +458,7 @@ def main() -> int:
     parser.add_argument('--fonte', default='yfinance', help='fonte de dados')
     parser.add_argument('--caminho', help='arquivo local de dados')
     parser.add_argument('--formato', default='csv', help='formato do arquivo local')
+    parser.add_argument('--de-yfinance', action='store_true', help='desfaz o MultiIndex do yfinance quando aplicável')
     parser.add_argument('--charts', nargs='+', help='lista de gráficos a gerar (ex: equity_curve drawdown rsi)')
     parser.add_argument('--chart-formats', nargs='+', default=['png','svg'], help='formatos de saída para os gráficos')
     args = parser.parse_args()
@@ -467,6 +472,7 @@ def main() -> int:
         'tempo': args.tempo,
         'caminho': args.caminho,
         'formato': args.formato,
+        'de_yfinance': args.de_yfinance,
     }
 
     symbols = args.symbols or ([args.indice] if args.indice else None)
