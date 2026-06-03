@@ -113,13 +113,15 @@ def load_and_clean(
         df['symbol'] = indice
 
     clean_kwargs = clean_kwargs or {}
-    return clean_data(
+    cleaned, report = clean_data(
         df,
         handle_missing=handle_missing,
         remove_outliers=remove_outliers,
         verbose=verbose,
         **clean_kwargs,
     )
+    if verbose: print(report)
+    return cleaned
 
 
 def build_backtest_engine(
@@ -383,7 +385,11 @@ def run_standard_backtest(
     if data is None:
         data = load_and_clean(**load_kwargs, clean_kwargs=clean_kwargs)
     elif clean_kwargs:
-        data = clean_data(data, **clean_kwargs)
+        cleaned = clean_data(data, **clean_kwargs)
+        if isinstance(cleaned, tuple):
+            data, _ = cleaned
+        else:
+            data = cleaned
 
     engine = build_backtest_engine(
         data=data,

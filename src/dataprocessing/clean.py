@@ -165,7 +165,7 @@ NOTAS:
 """
 import pandas as pd
 import numpy as np
-def clean_data(df,handle_missing='ffill',remove_outliers=False,verbose=True):
+def clean_data(df,handle_missing='ffill',remove_outliers=False,verbose=True) -> tuple[pd.DataFrame, pd.DataFrame]:
    df_limpo=df.copy()
    linhas_original=len(df_limpo)
    dados_faltando=0
@@ -177,10 +177,9 @@ def clean_data(df,handle_missing='ffill',remove_outliers=False,verbose=True):
       alertas.append(f"Erro Datetime:{e}")
    colunas=['Open','High','Low','Close','Volume']
    for col in colunas:
-      if col not in df_limpo.columns:
-         continue
-
-      df_limpo[col]=pd.to_numeric(df_limpo[col],errors='coerce')
+      if col in df.columns:
+         df_limpo[col]=pd.to_numeric(df_limpo[col],errors='coerce')
+      
    df_limpo["Volume"]=df_limpo["Volume"].fillna(0).astype('int64')
    df_limpo=df_limpo[~df_limpo.index.duplicated()]
    df_limpo=df_limpo.sort_index()
