@@ -88,33 +88,24 @@ print(result.metrics)
 
 ```python
 # Runnable example (no internet). Creates a tiny sample DataFrame and runs a backtest.
-import pandas as pd
-from back_da_dev import run_standard_backtest, list_strategies
+from .modelos_pre_implementados import buy_and_hold
+initial_capital =10000.0
+symbols = ['PETR4', 'VALE5', 'ITUB4']
+_config['dado_real'] = False
+_config['periodos'] = 15
+engine = BacktestEngine(pd.DataFrame(), symbols, initial_capital)
 
-dates = pd.to_datetime(["2025-01-01", "2025-01-02", "2025-01-03"])
-df = pd.DataFrame(
-  {
-    "symbol": ["A", "A", "A"],
-    "open": [100.0, 101.0, 102.0],
-    "high": [101.0, 102.0, 103.0],
-    "low": [99.5, 100.5, 101.5],
-    "close": [101.0, 102.0, 103.0],
-    "volume": [1000, 1200, 1100],
-  },
-  index=dates,
-)
 
-result = run_standard_backtest(
-  data=df,
-  symbols=["A"],
-  strategy="buy_and_hold",
-  initial_capital=1000.0,
-  commission=0.0,
-  save_graphs=False,
-  save_log=False,
-)
+print('Executando backtest browniano com estratégia buy_and_hold...')
+strategy = buy_and_hold(initial_capital)
+engine.run(strategy)
 
-print(result.metrics)
+print('\nRESULTADOS DO BACKTEST')
+print('Cash final:', f'R$ {engine.cash:.2f}')
+print('Portfolio value final:', f'R$ {engine.portfolio_value:.2f}')
+print('Posições abertas:', engine.open_positions)
+print('Trades fechados:', len(engine.closed_positions))
+print('Dias simulados:', len(engine.daily_history))
 ```
 
 Gere um relatório após um backtest:
@@ -150,11 +141,6 @@ report = generate_backtest_report(
 ```
 
 ### CLI
-Execute o pacote como módulo:
-
-```bash
-python -m back_da_dev --indice PETR4.SA --strategy ma --initial-capital 10000 --output-dir ./results
-```
 
 Opções de exemplo:
 - `--indice`: símbolo do ticker para carregar via yfinance
