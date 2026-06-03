@@ -28,7 +28,14 @@ from backtesting.backtesting_main import BacktestEngine
 from backtesting.modelos_pre_implementados import EMA, MA, buy_and_hold, estrat
 from dataprocessing.clean import clean_data
 from dataprocessing.load import load_data
-from graphing.graphing import plot_drawdown, plot_equity_curve
+from graphing.graphing import (
+    plot_drawdown,
+    plot_equity_curve,
+    plot_cumulative_returns,
+    plot_volatility,
+    plot_bollinger_bands_chart,
+    plot_rsi_chart,
+)
 
 
 STRATEGY_MAP: Dict[str, Type[estrat]] = {
@@ -244,28 +251,76 @@ def export_backtest_graphs(
     engine: BacktestEngine,
     output_dir: Union[str, Path] = './results',
     prefix: str = 'backtest',
+    charts: Optional[Sequence[str]] = None,
+    formats: Sequence[str] = ('png', 'svg'),
 ) -> Dict[str, str]:
-    """Gera gráficos automáticos a partir do histórico diário."""
+    """Gera gráficos automáticos a partir do histórico diário.
+
+    Parameters
+    - charts: lista de nomes de gráficos a gerar. Se None, gera todos suportados.
+    - formats: extensões/formatos de saída (ex: ('png','svg')).
+    """
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # mapa de gráficos suportados para funções e tipo de entrada
+    supported = {
+        'equity_curve': ('daily_history', plot_equity_curve),
+        'drawdown': ('daily_history', plot_drawdown),
+        'cumulative_returns': ('price_series', plot_cumulative_returns),
+        'volatility': ('price_series', plot_volatility),
+        'bollinger': ('price_series', plot_bollinger_bands_chart),
+        'rsi': ('price_series', plot_rsi_chart),
+    }
+
+    default_charts = list(supported.keys())
+    charts = list(charts) if charts is not None else default_charts
+
     graph_paths: Dict[str, str] = {}
 
-    figure = plt.figure()
-    ax = plot_equity_curve(engine.daily_history)
-    equity_path = output_dir / f'{prefix}_equity_curve.png'
-    figure = ax.figure
-    figure.savefig(equity_path, bbox_inches='tight')
-    plt.close(figure)
-    graph_paths['equity_curve'] = str(equity_path)
+    # preparar price_series a partir do daily_history quando possível
+    daily_df = pd.DataFrame(engine.daily_history)
+    price_series = None
+    if not daily_df.empty:
+        if 'date' in daily_df.columns:
+            try:
+                daily_df = daily_df.sort_values('date')
+                daily_df.index = pd.to_datetime(daily_df['date'])
+            except Exception:
+                pass
 
-    figure = plt.figure()
-    ax = plot_drawdown(engine.daily_history)
-    drawdown_path = output_dir / f'{prefix}_drawdown.png'
-    figure = ax.figure
-    figure.savefig(drawdown_path, bbox_inches='tight')
-    plt.close(figure)
-    graph_paths['drawdown'] = str(drawdown_path)
+        for col in ('close', 'price', 'portfolio_value'):
+            if col in daily_df.columns:
+                price_series = pd.Series(daily_df[col].values, index=daily_df.index, name=col)
+                break
+
+    for chart in charts:
+        if chart not in supported:
+            print(f"Warning: gráfico desconhecido '{chart}', pulando.")
+            continue
+
+        input_type, func = supported[chart]
+        try:
+            if input_type == 'daily_history':
+                ax = func(engine.daily_history)
+            else:
+                if price_series is None or price_series.empty:
+                    print(f"Warning: sem série de preços disponível para '{chart}', pulando.")
+                    continue
+                ax = func(price_series)
+
+            fig = ax.figure
+            for i, fmt in enumerate(formats):
+                out_path = output_dir / f"{prefix}_{chart}.{fmt}"
+                fig.savefig(out_path, bbox_inches='tight')
+                # registrar o primeiro formato como caminho principal
+                if i == 0:
+                    graph_paths[chart] = str(out_path)
+                else:
+                    graph_paths[f"{chart}_{fmt}"] = str(out_path)
+            plt.close(fig)
+        except Exception as exc:  # pragma: no cover - defensive
+            print(f"Erro ao gerar gráfico '{chart}': {exc}")
 
     return graph_paths
 
@@ -276,6 +331,8 @@ def generate_backtest_report(
     prefix: str = 'backtest',
     save_graphs: bool = True,
     save_log: bool = True,
+    charts: Optional[Sequence[str]] = None,
+    formats: Sequence[str] = ('png', 'svg'),
 ) -> BacktestResult:
     """Gera um relatório completo de backtest com gráficos e .log."""
     metrics = compute_backtest_metrics(engine)
@@ -283,7 +340,9 @@ def generate_backtest_report(
     log_path: Optional[str] = None
 
     if save_graphs:
-        graph_paths = export_backtest_graphs(engine, output_dir=output_dir, prefix=prefix)
+        graph_paths = export_backtest_graphs(
+            engine, output_dir=output_dir, prefix=prefix, charts=charts, formats=formats
+        )
 
     if save_log:
         log_path = save_backtest_log(
@@ -313,6 +372,8 @@ def run_standard_backtest(
     output_dir: Union[str, Path] = './results',
     save_log: bool = True,
     save_graphs: bool = True,
+    charts: Optional[Sequence[str]] = None,
+    chart_formats: Sequence[str] = ('png', 'svg'),
 ) -> BacktestResult:
     """Executa um backtest padrão e retorna resultados e caminhos de saída."""
     load_kwargs = load_kwargs or {}
@@ -351,6 +412,8 @@ def run_standard_backtest(
             engine,
             output_dir=output_dir,
             prefix='backtest',
+            charts=charts,
+            formats=chart_formats,
         )
 
     if save_log:
@@ -385,6 +448,8 @@ def main() -> int:
     parser.add_argument('--fonte', default='yfinance', help='fonte de dados')
     parser.add_argument('--caminho', help='arquivo local de dados')
     parser.add_argument('--formato', default='csv', help='formato do arquivo local')
+    parser.add_argument('--charts', nargs='+', help='lista de gráficos a gerar (ex: equity_curve drawdown rsi)')
+    parser.add_argument('--chart-formats', nargs='+', default=['png','svg'], help='formatos de saída para os gráficos')
     args = parser.parse_args()
 
     if not args.indice and not args.caminho:
@@ -408,6 +473,8 @@ def main() -> int:
         output_dir=args.output_dir,
         save_graphs=args.save_graphs,
         save_log=args.save_log,
+        charts=args.charts,
+        chart_formats=args.chart_formats,
     )
 
     print(f'Backtest finalizado. Equity final: {result.metrics["final_equity"]:.2f}')

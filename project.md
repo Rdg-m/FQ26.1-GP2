@@ -305,6 +305,45 @@ Key features:
 - `plot_equity_curve`
 - `plot_drawdown`
 
+Supported charts (available via the interface/export):
+
+- `equity_curve` — Curva de patrimônio (valor total do portfolio ao longo do tempo)
+- `drawdown` — Quedas relativas ao pico (drawdown %)
+- `cumulative_returns` — Retorno acumulado (%) ao longo do tempo
+- `volatility` — Volatilidade móvel anualizada (rolling window)
+- `bollinger` — Preço com Bandas de Bollinger (média + bandas)
+- `rsi` — Índice de Força Relativa (RSI)
+- `time_series` — Série temporal de preço (plot_time_series)
+
+Behavior / integration notes:
+
+- The `interface` exposes `export_backtest_graphs(..., charts=[...], formats=[...])` which can generate any of the supported charts and save them to disk.
+- By default the CLI and API generate `equity_curve` and `drawdown`. You may request additional charts via the `charts` parameter or the CLI flag `--charts`.
+- When a chart requires price series input (ex: `bollinger`, `rsi`, `cumulative_returns`, `volatility`) the interface will attempt to construct a `price_series` from the engine `daily_history` using one of the columns `close`, `price` or `portfolio_value`.
+- If the required input is missing the interface skips that chart and emits a warning.
+
+Example: generate a report with extra charts via Python API:
+
+```python
+from back_da_dev import generate_backtest_report
+
+report = generate_backtest_report(
+  engine=engine,
+  output_dir='./results',
+  prefix='experiment1',
+  save_graphs=True,
+  charts=['equity_curve','cumulative_returns','rsi','bollinger'],
+  formats=('png','svg'),
+)
+print(report.graph_paths)
+```
+
+Example: CLI generation with specific charts and formats:
+
+```bash
+python -m back_da_dev --indice PETR4.SA --strategy ma --output-dir ./results --charts equity_curve rsi bollinger --chart-formats png svg
+```
+
 The interface uses these functions to export PNG charts for equity and drawdown.
 
 ## 9. CLI

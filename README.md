@@ -101,6 +101,30 @@ print(report.graph_paths)
 print(report.log_path)
 ```
 
+Graphing and report options
+---------------------------
+
+The interface supports selecting which charts to export and which output formats to save. Supported chart names include: `equity_curve`, `drawdown`, `cumulative_returns`, `volatility`, `bollinger`, `rsi`, `time_series`.
+
+Example (API):
+
+```python
+from back_da_dev import generate_backtest_report
+
+report = generate_backtest_report(
+  engine=result.engine,
+  output_dir='./results',
+  charts=['equity_curve','rsi','bollinger'],
+  formats=('png','svg'),
+)
+```
+
+Example (CLI):
+
+```bash
+python -m back_da_dev --indice PETR4.SA --strategy ma --output-dir ./results --charts equity_curve rsi bollinger --chart-formats png svg
+```
+
 ### CLI
 Execute o pacote como módulo:
 

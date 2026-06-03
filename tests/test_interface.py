@@ -33,5 +33,11 @@ def test_interface_run_standard_backtest(tmp_path):
     assert tmp_path.joinpath("backtest.log").exists()
     assert "equity_curve" in result.graph_paths
     assert "drawdown" in result.graph_paths
+    # novos gráficos esperados (gerados por padrão)
+    assert "cumulative_returns" in result.graph_paths
+    assert "volatility" in result.graph_paths
+    # verificar arquivos físicos (formato png padrão)
+    assert tmp_path.joinpath("backtest_cumulative_returns.png").exists()
+    assert tmp_path.joinpath("backtest_volatility.png").exists()
     assert result.metrics["total_trades"] == 0
     assert "buy_and_hold" in list_strategies()
