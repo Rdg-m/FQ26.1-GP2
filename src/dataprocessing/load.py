@@ -148,8 +148,9 @@ def load_data(caminho=None, formato='csv', indice=None, fonte="yfinance", tempo=
                 df = yf.download(indice, start=comeco, end=fim)
             else:
                 df = yf.download(indice, period=tempo)
-            if de_yfinance:
-                df = _flatten_yfinance_columns(df)
+            
+            if isinstance(df.columns, pd.MultiIndex):
+                df.columns = df.columns.get_level_values(0)
         
         elif fonte == 'bcb':
             try:

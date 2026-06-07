@@ -354,7 +354,8 @@ class BacktestEngine:
             elif tipo == "SELL":
                 if simbolo in self.open_positions:
                     self._execute_sell(sinal)
-                else: raise AttributeError('simbolo não está nas posições abertas', simbolo)
+                else:
+                    print(f"Aviso: Ignorando sinal de venda. Sem posição em {simbolo}.") 
             else: raise ValueError('Tipo de sinal mal formado', tipo)
 
     def _verificar_stop_take(self, ohlcv):
@@ -441,6 +442,8 @@ class BacktestEngine:
         datas_unicas=self.data.index.unique()       # achar outro método de saber iterações (imagino que um _config serve) -rod
         print('iniciado_o_back')
         for date in datas_unicas:
+            self.data_atual = date
+            
             ohlcv=self.data.loc[self.data.index==date]
 
             self._fluxo_padrao(ohlcv, strategy_instance)

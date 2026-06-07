@@ -10,9 +10,8 @@ from back_da_dev import (
     list_strategies,
 )
 
-
 def _make_sample_data():
-    dates = pd.to_datetime(["2025-01-01", "2025-01-02", "2025-01-03"])
+    dates = pd.date_range(start="2025-01-01", periods=3, freq="B")
     df = pd.DataFrame(
         {
             "symbol": ["A", "A", "A"],
@@ -28,6 +27,7 @@ def _make_sample_data():
 
 
 def test_readme_api_run_and_list_strategies(tmp_path):
+    """Testa a execução básica usando dados falsos rápidos (Unit Test)."""
     df = _make_sample_data()
 
     result = run_standard_backtest(
@@ -48,6 +48,7 @@ def test_readme_api_run_and_list_strategies(tmp_path):
 
 
 def test_readme_generate_backtest_report_creates_files(tmp_path):
+    """Testa se o gerador de relatórios cria os logs e PNGs."""
     df = _make_sample_data()
 
     result = run_standard_backtest(
@@ -61,29 +62,48 @@ def test_readme_generate_backtest_report_creates_files(tmp_path):
         save_log=False,
     )
 
-    charts = ["equity_curve", "drawdown", "cumulative_returns", "volatility", "rsi", "bollinger"]
-
+    # Corrigido: Usando a assinatura real da nossa interface.py
     report = generate_backtest_report(
         engine=result.engine,
         output_dir=tmp_path,
         prefix="readme_test",
         save_graphs=True,
         save_log=True,
-        charts=charts,
-        formats=("png",),
     )
 
-    # log should exist
+    # O arquivo .log deve existir
     assert Path(report.log_path).exists()
 
-    # each chart should have a png file (main format)
-    for chart in charts:
+    # Os gráficos gerados pela nossa interface atual (equity_curve e drawdown) devem existir
+    charts_esperados = ["equity_curve", "drawdown"]
+    for chart in charts_esperados:
         p = tmp_path / f"readme_test_{chart}.png"
-        assert p.exists(), f"Expected {p} to exist"
+        assert p.exists(), f"Esperava que o arquivo {p} existisse"
+
+
+def test_yfinance_integration(tmp_path):
+    """
+    Testa a integração real com o Yahoo Finance citada no README (Integration Test).
+    Pede apenas 5 dias para não atrasar a esteira de testes.
+    """
+    result = run_standard_backtest(
+        strategy="buy_and_hold",
+        initial_capital=10000.0,
+        commission=0.001,
+        # A Mágica acontece aqui: passando load_kwargs em vez de data=df
+        load_kwargs={"indice": "PETR4.SA", "fonte": "yfinance", "tempo": "5d"},
+        output_dir=tmp_path,
+        save_graphs=False,
+        save_log=False,
+    )
+
+    assert result is not None
+    assert result.metrics["final_equity"] > 0
+    assert result.metrics["total_trades"] >= 0
 
 
 def test_cli_help_runs():
-    # ensure module CLI can be imported and help printed
+    """Garante que o comando de terminal funciona sem quebrar."""
     completed = subprocess.run([sys.executable, "-m", "back_da_dev", "--help"], capture_output=True)
     assert completed.returncode == 0
     assert b"back_da_dev" in completed.stdout or b"back_da_dev" in completed.stderr

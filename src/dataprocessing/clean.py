@@ -212,7 +212,7 @@ def clean_data(df,handle_missing='ffill',remove_outliers=False,verbose=True) -> 
          df_limpo = df_limpo.drop(outliers_encontrados.index) 
 
    linhas_finais=len(df_limpo)
-   
+   df_limpo.columns = df_limpo.columns.str.lower()
    report_data = {
       "Linhas_Originais": [linhas_original],
       "Linhas_Finais": [linhas_finais],
