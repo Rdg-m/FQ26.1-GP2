@@ -1,11 +1,4 @@
-"""
-esse arquivo será usado para guardar o código de modelos financeiros básicos para uso de teste das funções do projeto e benchmark
-
-Vamos tratar os modelos aqui como modelos que seriam implementados para uso do código que estamos escrevendo, então faz sentido que eles chamem os métodos que desenvolveremos
-Ou eles sejam usados pelo backtest, depende da lógica de OOP.
-"""
-
-from typing import Any, List, Dict
+from typing import List, Dict
 from collections.abc import Iterable
 import random
 

@@ -2,7 +2,7 @@ data/B3/*
 data/S&P100/*
 data/*
 results/*
-
+.github/*
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
