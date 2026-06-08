@@ -3,6 +3,8 @@ data/S&P100/*
 data/*
 results/*
 .github/*
+results/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
