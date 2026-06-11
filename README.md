@@ -1,8 +1,9 @@
 # Back-da-dev
 
-
 ## FQ26.1-GP2
 **FEA.dev Backtesting Lab** — Protótipos rápidos e backtesting quantitativo para estudantes e investidores curiosos.
+
+Projeto do grupo 2 de finanças quantitativas de 26.1
 
 ## Sumário
 - [Sobre o Projeto](#sobre-o-projeto)
